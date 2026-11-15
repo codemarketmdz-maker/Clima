@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<script src="detect.js?v=13"></script>
+<script>
+// Revisión en segundo plano: la llama el servicio nativo con {cfg, locs, notified}
+window.runCheck = async function (st) {
+  function windAtHeight(hourly, bearing) {
+    hourly = hourly || {}; const vectors = [];
+    [700, 500].forEach(level => {
+      const sp = hourly['wind_speed_' + level + 'hPa'], dr = hourly['wind_direction_' + level + 'hPa'];
+      if (!sp || !dr || sp[0] == null || dr[0] == null) return;
+      const toward = (Number(dr[0]) + 180) % 360, r = toward * Math.PI / 180, v = Number(sp[0]);
+      if (Number.isFinite(v) && v > 0) vectors.push({ x: Math.sin(r) * v, y: Math.cos(r) * v });
+    });
+    if (!vectors.length) return 'viento en altura sin datos';
+    const x = vectors.reduce((a, v) => a + v.x, 0) / vectors.length, y = vectors.reduce((a, v) => a + v.y, 0) / vectors.length;
+    const dir = (Math.atan2(x, y) * 180 / Math.PI + 360) % 360;
+    let d = Math.abs(dir - bearing) % 360; d = Math.min(d, 360 - d);
+    return 'viento pronosticado en altura ' + (d <= 45 ? 'coincide' : d <= 90 ? 'coincide parcialmente' : 'diverge') + ' (' + Math.round(dir) + '°)';
+  }
+  try {
+    const cfg = mergeCfg(st.cfg), locs = st.locs || [], events = [];
+    let ok = false, weatherArr = [];
+    if (locs.length) {
+      try {
+        const lp = locs.map(l => [l.lat, l.lon]);
+        const r = await Promise.all([fetchWeather(lp, { full: true, hourly: true }), fetchCloudTops(lp), Promise.all(locs.map(l => fetchOfficialAlertsForPoint(l).catch(() => [])))]);
+        weatherArr = r[0] || []; attachCloudTops(weatherArr, r[1]);
+        weatherArr.forEach((d, i) => { if (d && d.current && locs[i]) events.push(...detectPoint(d.current, d.hourly, cfg, locs[i].name, { confirmed: stormConfirmed(d.current, null, null) }), ...(r[2][i] || [])); });
+        ok = true;
+      } catch (e) {}
+      try { const mt = await fetchMetars(); locs.forEach(l => events.unshift(...metarEvents(nearestMetar(mt, l.lat, l.lon, 60), l.name))); ok = true; } catch (e) {} // observaciones reales de aeropuertos
+      // Seguimiento de tormentas también en segundo plano: radar histórico + movimiento nuboso GOES.
+      // Solo genera ETA/alerta si ambas observaciones siguen la misma célula y coinciden en rumbo.
+      let radarTimeline = null;
+      try { radarTimeline = await fetchRadarTimeline(); } catch (e) {}
+      for (const l of locs) {
+        try { if (radarTimeline) events.unshift(...radarNowEvents(await radarNowAt(l, radarTimeline.frames, radarTimeline.host), l.name)); } catch (e) {} // eco de lluvia sobre el punto
+        try { events.push(...consensusEvents(await fetchConsensus(l.lat, l.lon), l.name, 6)); } catch (e) {} // consenso de modelos (anticipación)
+        try {
+          if (!radarTimeline) throw new Error('RainViewer no disponible');
+          const radar = await trackRadarMotion(l, radarTimeline.frames, radarTimeline.host);
+          if (radar && radar.available && radar.detected && radar.cellLat != null) {
+            const target = { x: radar.latestX, y: radar.latestY };
+            const pair = await Promise.all([fetchCloudTops([[radar.cellLat, radar.cellLon]]), trackGoesCloudMotion(l, target)]);
+            const cloud = pair[0] && pair[0][0], gm = pair[1];
+            let d = gm && gm.available ? Math.abs(Number(radar.bearing) - Number(gm.bearing)) % 360 : 999;
+            d = Math.min(d, 360 - d);
+            const separation = gm && gm.available ? Math.hypot((radar.latestX || 0) - (gm.latestX || 0), (radar.latestY || 0) - (gm.latestY || 0)) : 999;
+            const dualConfirmed = !!(cloud && cloud.min != null && cloud.min <= -40 && gm && gm.available && d <= 60 && separation <= 80);
+            const weatherPoint = weatherArr && weatherArr[locs.indexOf(l)], windNote = windAtHeight(weatherPoint && weatherPoint.hourly, radar.bearing);
+            const lead = Math.max(30, Math.min(90, Number(cfg.alertLeadMin) || 60));
+            if (dualConfirmed && radar.approaching && radar.confidence !== 'baja' && radar.distanceKm <= 200 && radar.etaMin != null && radar.etaMin <= lead && !(radar.distanceKm < 30 && radar.etaMin < 30) && cfg.notify.stormApproach) {
+              events.push({ type: 'stormApproach', level: 2, title: 'Tormenta en trayectoria hacia ' + l.name, place: l.name,
+                key: 'radar-track:' + l.name,
+                detail: 'Radar y GOES IR coinciden en el rumbo (' + Math.round(radar.bearing) + '°). Célula a ' + radar.distanceKm + ' km, ' + radar.speedKmh + ' km/h; paso estimado en ~' + radar.etaMin + ' min. Topes nubosos ' + Math.round(cloud.min) + ' °C. Confianza ' + radar.confidence + '. ' + windNote + '. Estimación, no garantía.' });
+              ok = true;
+            }
+          }
+        } catch (e) { /* Cobertura o fuente incompleta: no se inventa una alerta. */ }
+        try { events.push(...quakeEvents(await fetchUSGS(l, cfg), l, l.name)); ok = true; } catch (e) {}
+      }
+    }
+    const map = st.notified || {}, now = Date.now(), out = [];
+    for (const ev of events) {
+      if (!shouldNotify(map, ev, cfg, now)) continue;
+      const n = notifOptions(ev, cfg);
+      out.push({ title: n.title, body: n.opts.body, type: ev.type, level: ev.level, tag: evKey(ev) });
+    }
+    pruneNotified(map, events);
+    let wx = null;
+    try {
+      let idx = locs.findIndex(l => l.id === 'gps'); if (idx < 0) idx = 0;
+      const cw = weatherArr && weatherArr[idx] && weatherArr[idx].current;
+      if (cw && cw.temperature_2m != null) wx = { t: Number(cw.temperature_2m), code: Number(cw.weather_code), p: Number(cw.precipitation) || 0, cc: Number(cw.cloud_cover) || 0, day: cw.is_day == null ? null : Number(cw.is_day), place: (locs[idx] && locs[idx].name) || '' };
+    } catch (e) {}
+    AndroidBg.onResult(JSON.stringify({ ok: ok, alerts: out, notified: map, wx: wx }));
+  } catch (e) {
+    AndroidBg.onResult(JSON.stringify({ ok: false, alerts: [], notified: st.notified || {}, err: String(e) }));
+  }
+};
+</script>
