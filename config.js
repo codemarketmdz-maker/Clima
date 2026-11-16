@@ -13,7 +13,7 @@ window.CM_CFG = {
   brand: 'CodeMarket',
   proxy: '',   // opcional (sin usar por ahora): URL de un proxy propio; se usan las copias de GitHub Actions y proxies públicos de respaldo
   licUrl: 'https://tiempomdz-licencias.codemarketmdz.workers.dev/',   // URL del servidor de licencias (licencias/worker.js). Vacío = prueba local sin protección
-  licPub: {"crv":"P-256","kty":"EC","x":"5AlJYv3EoD3EKsESJ1kX1VpFPUCTPsolMMJt6rJSoIs","y":"TJ-NWXHCY4PNQ3zamYaLvGHD7WLQR0_qABCV9sja1OI"}, // clave pública (la imprime licencias/gen-keys.mjs)
+  licPub: {"crv":"P-256","kty":"EC","x":"j7eoQqVl_32_ulYUSYXDxoqvAofmo2c8A40e99TjHTE","y":"uMog43ZYuX79RSq6NfocEywlZ07yYR4tP39VfmBhHWc"}, // clave pública (la imprime licencias/gen-keys.mjs)
   waNumber: '5492615117220',
   mpLinks: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },
   prices: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },
