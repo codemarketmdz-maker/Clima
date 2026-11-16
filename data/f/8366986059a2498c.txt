@@ -1,0 +1,592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><!-- InstanceBegin template="/Templates/plantilla.dwt" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- InstanceBeginEditable name="doctitle" -->
+<title>Alerta de Heladas</title>
+
+<!-- InstanceEndEditable -->
+<link rel="shortcut icon" href="../favicon.ico">
+<link rel="stylesheet" type="text/css" href="../css/estilos.css" />
+<link href="../css/tipuesearch.css" rel="stylesheet" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="../js/tipuesearch_content.js"></script>
+<script src="../js/tipuesearch_set.js"></script>
+<script src="../js/tipuesearch.js"></script>
+<script type="text/javascript" src="../js/menuinf.js"></script>
+<script type="text/javascript" src="../js/jquerymenuinf.js"></script>
+<script type="text/javascript" src="../js/veryocultar.js"></script>
+<link href="../css/reset.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="http://aext.net/example/bubbleup/jquery.bubbleup.js"></script>
+<script type="text/javascript">
+$(function(){
+
+    $("div#demo ul#menu li img").bubbleup({tooltip: true, scale:96});
+    
+});
+
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+</script>
+<!-- InstanceBeginEditable name="head" -->
+
+
+<!-- InstanceEndEditable -->
+<style type="text/css">
+td img {display: block;}td img {display: block;}td img {display: block;}
+</style>
+</head>
+
+<body onload="MM_preloadImages('../images/pie/pie3/PIE3_r1_c2_s2.png','../images/pie/pie3/PIE3_r1_c3_s2.png','../images/pie/pie3/PIE3_r1_c4_s2.png','../images/pie/pie3/PIE3_r1_c5_s2.png','../images/pie/pie3/PIE3_r1_c7_s2.png','../images/pie/pie3/PIE3_r1_c8_s2.png','../images/pie/pie3/PIE3_r2_c1_s2.png','../images/pie/pie3/PIE3_r4_c2_s2.png','../images/pie/pie3/PIE3_r4_c9_s2.png','../images/pie/pie3/PIE3_r4_c10_s2.png')">
+
+
+
+<table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center" valign="top"><table width="1018" border="0" cellspacing="0" cellpadding="0">
+      <tr class="fondodesolapasuperior">
+        <td width="32" align="center" valign="top"><br/></td>
+        <td width="322" align="left" valign="top"><a href="../index.html"><img src="../images/dire.png" width="318" height="60" /></a></td>
+        <td width="365" align="center" valign="top">&nbsp;</td>
+        <td width="319" align="center" valign="top"><form action="../search.html">
+<div style="float: left;">
+  <p><img src="../images/ministerio%20nuevo.PNG" alt="" width="313" height="60" /> </p>
+  <p>&nbsp;</p>
+</div>
+<div style="float: left; margin-left: 13px;">
+  <p>&nbsp;    </p>
+  <p>&nbsp;</p>
+</div>
+</form>
+<div style="clear: both"></div>
+<script>
+$(document).ready(function() {
+     $('#tipue_search_input').tipuesearch();
+});
+</script></td>
+      </tr>
+      <tr>
+        <td colspan="4" align="center" valign="top"><ul id="sti-menu" class="sti-menu">
+				<li data-hovercolor="#000000">
+					<a href="../pronostico.php">
+					<h2 data-type="mText" class="sti-item">Pronostico</h2>
+						<h3 data-type="sText" class="sti-item">
+                    <strong>Conozca el pronóstico extendido para Mendoza.</strong> </h3>
+					<span data-type="icon" class="sti-icon sti-icon-care sti-item"></span>					</a>				</li>
+<li data-hovercolor="#000000">
+					<a href="../Radar/radar.html">
+					<h2 data-type="mText" class="sti-item">Radar</h2>
+						<h3 data-type="sText" class="sti-item"><strong>Información obtenida a traves de radares meteorológicos.</strong></h3>
+					<span data-type="icon" class="sti-icon sti-icon-family sti-item"></span>					</a>				</li>
+<li data-hovercolor="#000000">
+					<a href="alertadeheladas.php">
+					<h2 data-type="mText" class="sti-item">Alerta de heladas</h2>
+						<h3 data-type="sText" class="sti-item"><strong>Alerta para prevenir el riesgo y disminuir los efectos dañinos.</strong></h3>
+					<span data-type="icon" class="sti-icon sti-icon-alternative sti-item"></span>					</a>				</li>
+<li data-hovercolor="#000000">
+					<a href="../SeguroAgricola/Seguro.php">
+					<h2 data-type="mText" class="sti-item">Seguro Agrícola</h2>
+						<h3 data-type="sText" class="sti-item"><strong>Imprima su Factura Temporada 2018-2019</strong></h3>
+					<span data-type="icon" class="sti-icon sti-icon-info sti-item"></span>					</a>				</li>
+<li data-hovercolor="#000000">
+					<a href="../rut/rut.html">
+					<h2 data-type="mText" class="sti-item">RUT</h2>
+						<h3 data-type="sText" class="sti-item"><strong>Identificación de las propiedades rurales de uso agrícola.</strong></h3>
+					<span data-type="icon" class="sti-icon sti-icon-technology sti-item"></span>					</a>				</li>
+                
+            <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="../js/jquery.easing.1.3.js"></script>
+		<script type="text/javascript" src="../js/jquery.iconmenu.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				$('#sti-menu').iconmenu();
+			});
+		</script>
+          </td>
+      </tr>
+      </table>
+      
+      
+      
+      
+      
+      <table width="1018" border="0" align="center" cellpadding="0" cellspacing="0">
+        <tr>
+          <td><div id="menu">
+    <ul class="menu">
+        <li><a href="#" class="parent"><span> Riesgo Agrícola</span></a>
+            <div><ul>
+                <li><a href="../gestion_del_riesgo_agricola/emergencia.html" class="parent"><span>Emergencia agropecuaria</span></a>
+                <li><a href="../infoad/centro_receptores.html"><span>Centro receptores</span></a></li>
+                <li><a href="../estadisticas.php"><span>Estadísticas</span></a></li>
+            </ul></div>
+        </li>
+       <li><a href="#" class="parent"><span>Agrometeorología</span></a>
+            <div><ul>
+                <li><a href="../agrometeorologia/estaciones.html" class="parent"><span>Estaciones</span></a>
+                <li><a href="#"><span>Datos Estadisticos</span></a>
+                	<div><ul>
+                		<li><a href="../agrometeorologia/datos_estadisticos_anuales.php" class="parent"><span>Anuales</span></a></li>
+                  <li><a href="../datos_estadisticos_mensuales.php"><span>Mensuales</span></a> </li>
+                  </ul></div>
+                <li><a href="../agrometeorologia/riesgo.php"><span>Riesgo de Heladas</span></a></li>
+                
+                <li><a href="../horas_y_unidades_de_frio.php"><span>Horas y unidades de frío</span></a></li>
+                <li><a href="../evapotranspiracion.php"><span>Evapotranspiración</span></a></li>
+                <li><a href="../radiacion.php"><span>Radiación</span></a></li>
+                <li><a href="../agrometeorologia/caracterizaciontemp.html"><span>Caracterización de temporadas vitícolas</span></a></li>
+                <li><a href="../agrometeorologia/mapas_de_dano.php"><span>Mapas de daños </span></a></li>
+            </ul></div>
+</li>
+               <li><a href="#" class="parent"><span>Lucha Antigranizo</span></a>
+            <div><ul>
+                <li><a href="../lucha_antigranizo/defensa_activa.html" class="parent"><span>Defensa activa</span></a>
+                <li><a href="../lucha_antigranizo/defensa_pasiva.html"><span>Defensa pasiva</span></a></li>
+                <li><a href="../lucha_antigranizo/red_granizometros.html"><span>Red de  granizómetros</span></a></li>
+                <li><a href="#"><span>Resultados de Campaña</span></a>
+                	<div><ul>
+                		<li><a href="../lucha_antigranizo/Informe12-13.pdf" class="parent"><span>2012-2013</span></a></li>
+                        <li><a href="../lucha_antigranizo/InformeFINALLAG13-14.pdf"><span>2013-2014</span></a> </li>
+                        <li><a href="../lucha_antigranizo/InformeFINALLAG14-15.pdf"><span>2014-2015</span></a> </li>
+                        <li><a href="../lucha_antigranizo/InformeFINAL%202015-16Colag.PDF"><span>2015-2016</span></a> </li>
+                  </ul></div>
+                <li><a href="../lucha_antigranizo/historia_lucha.html"><span>Historia lucha antigranizo</span></a></li>
+                <li><a href="../lucha_antigranizo/informes_granizo.html"><span>Informes de tormenta</span></a></li>
+                <li><a href="#"><span>Aeronáutica</span></a>
+                <div><ul>	
+                		<li><a href="../lucha_antigranizo/aeronautica/estructura_organizacional.html" class="parent"><span>Estructura organizacional</span></a></li>
+                  <li><a href="../lucha_antigranizo/aeronautica/aviones.html"><span>Aviones</span></a> </li>
+                
+            </ul></div>
+            </ul></div>
+        </li>
+        <li><a href="http://www.contingencias.mendoza.gov.ar/animacion" class="parent"><span>WRF Mod. Numérico</span></a></li>
+        <li><a href="../pedidodeinformacion.php" class="parent"><span>Pedido de información</span></a></li>
+        <li><a href="../noticias.php" class="parent"><span>Noticias</span></a></li>
+               
+  
+    </ul>
+</div>
+
+</td>
+        </tr>
+      </table>
+      
+      
+      
+      
+      
+      
+      
+<!-- InstanceBeginEditable name="cuerpo" -->
+<table width="960" border="0" cellpadding="0" cellspacing="0" class="fondoblanco">
+  <tr>
+    <td valign="top" class="fondoblanco"><p>&nbsp;</p>
+      <h1 align="center">&nbsp;</h1>
+      </p>
+<tr><td align="center"><p><br>
+      <table width="98%" border="0" cellspacing="0" cellpadding="5">
+</p>
+    <div align="center">
+      <table width="70%" border="1" align="center" bordercolor="#000000">
+        <tr>
+          <td align="center" bordercolor="#000000" bgcolor="#0066CC"><div align="center"><b><font color="#FFFFFF" size="3" face="Tahoma">Temperaturas M&aacute;ximas y 
+                  M&iacute;nimas</font></b></div>
+          </td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </div>    
+    <table width="100%" border="1">
+  <tr>
+    <td><p align="center"><strong>Temperaturas m&iacute;nimas registradas en el d&iacute;a
+          de la fecha</strong></p>
+
+	<font color="#000000" size="3" face="Tahoma">
+
+	  <!-- InstanceBeginEditable name="cuerpo" -->
+<table width="960" border="0" cellpadding="0" cellspacing="0" >
+  <tr>
+    <td valign="top" "><p>&nbsp;</p>
+      <h1 align="center">&nbsp;</h1>
+      </p>
+
+      <table align="center" width="98%" border="0" cellspacing="0" cellpadding="5">
+        <tr> 
+    <td align="center"><p align="left"><strong>Datos extremos del d&iacute;a de
+          hoy</strong></p>
+       <table  border="1" align="left"> <tr>  <td>  <div align="center"><b><strong>Estacion</strong></b></div>  </td> <td>  <div align="center"><b><strong>Departamento</strong></b></div>  </td> <td>  <div align="center"><b><strong>Max</strong></b></div>  </td> <td>  <div align="center"><b><strong>Min</strong></b></div>  </td> <td>  <div align="center"><b><strong>Último_Dato</strong></b></div>  </td> </tr></table>      <div align="left"><br>
+      </div></td>
+    <td align="left"><p><strong>Datos extremos del d&iacute;a de ayer<br>
+      <br>
+       <table  border="1" align="left"> <tr>  <td>  <div align="center"><b>Estacion</b></div>  </td> <td>  <div align="center"><b>Departamento</b></div>  </td> <td>  <div align="center"><b>Max</b></div>  </td> <td>  <div align="center"><b>Min</b></div>  </td> <td>  <div align="center"><b>Último_Dato</b></div>  </td> </tr></table>    </strong></p></td>
+  </tr>
+</table>
+
+      <p>&nbsp;</p></td>
+  </tr>
+  </table>
+
+</font></b></div>
+
+      </p></td>
+  </tr>
+  <tr>
+    <td colspan="2"><p align="center">Nota: Los datos extremos se van agregando a medida que se
+      ha llegado a la hora que se producen.</p></td>
+    </tr>
+</table>  
+<tr>
+    <td align="center"><p align="center">&nbsp;</p>
+      <table align="center" width="100%" border="1">
+        <tr>
+          <td width="29" valign="top"><table width="60%" border="1" align="center" cellspacing=0 cols=6 frame=VOID rules=NONE>
+              <colgroup>
+              <col width=86>
+              <col width=86>
+              <col width=86>
+              <col width=86>
+              <col width=86>
+              <col width=86>
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td colspan=6 height=42 align="center"><div align="center">
+                    <p><font size="2"><strong>Tabla
+                      con las temperaturas que podr&iacute;an causar da&ntilde;o
+                      a las distintas especies frutales seg&uacute;n su estado
+                      fenol&oacute;gico</strong></font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td width="276" height=78 align=CENTER style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000"><p><strong>Especie</strong></p></td>
+                  <td width="167" align=CENTER style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000"><p><strong>Receso
+                    Invernal</strong></p></td>
+                  <td width="139" align=CENTER style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000"><p><strong>Yemas
+                    cerradas mostrando color</strong></p></td>
+                  <td width="122" align=CENTER style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000"><p><strong>Plena
+                    floraci&oacute;n</strong></p></td>
+                  <td width="136" align=CENTER style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000"><p><strong>Peque&ntilde;os
+                    Frutos Verdes</strong></p></td>
+                  <td width="186" align=CENTER style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000"><p><strong>Fruto
+                    2 cm</strong></p></td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=27 align=CENTER><p><font face="Nimbus Roman No9 L">DURAZNERO</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-26.1 </font></p>
+                    </div>
+                    </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.9 </font></p>
+                    </div>
+                    </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.8 </font></p>
+                    </div>
+                    </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-1.1 </font></p>
+                    </div>
+                    </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.0 </font></p>
+                    </div>
+                    </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">CEREZO</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-28.9 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.8 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.2 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-1.1 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.0 </font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">PERAL</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-28.9 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.9 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.2 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-1.1 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-4.0 </font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">CIRUELO</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-34.4 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.4 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.2 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-1.1 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.0 </font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">MANZANO</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-34.4 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.9 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.2 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-1.7 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-4.0 </font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">ALMENDRO</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.3 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.7 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-1.1 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">DAMASCO</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-3.8 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-2.2 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-0.5 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">NOGAL</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-1.0 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-0.5 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height=21 align=CENTER><p><font face="Nimbus Roman No9 L">OLIVO</font></p></td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L">-0.5 </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                  <td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" align=CENTER><div align="right">
+                    <p><font face="Nimbus Roman No9 L"><br>
+                    </font></p>
+                  </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+              <p align="center"><img src="../images/estados fenologicos.png" /></p>
+              <div align="center"></div>
+              <div align="right"></div>
+              <div align="center"></div>
+              <div align="center"></div>
+              <div align="center"></div>
+          </td>
+        </tr>
+      </table>
+
+</table>
+
+      <p>&nbsp;</p></td>
+  </tr>
+  </table>
+<!-- InstanceEndEditable -->
+<table width="1024" border="0" align="center" cellpadding="0" cellspacing="0" class="fondopie">
+        <tr>
+          <td width="768" colspan="4"><table style="display: inline-table;" border="0" cellpadding="0" cellspacing="0" width="1024">
+            <!-- fwtable fwsrc="PIE3.fw.png" fwpage="Página 1" fwbase="PIE3.png" fwstyle="Dreamweaver" fwdocid = "1892630234" fwnested="0" -->
+            <tr>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="52" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="132" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="175" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="147" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="28" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="176" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="164" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="13" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="45" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="45" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="47" height="1" id="undefined_2" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="1" height="1" id="undefined_2" /></td>
+            </tr>
+            <tr>
+              <td><img name="PIE3_r1_c1" src="../images/pie/pie3/PIE3_r1_c1.png" width="52" height="51" id="PIE3_r1_c1" alt="" /></td>
+              <td><a href="../infoad/quienes-somos.html" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('PIE3_r1_c2','','../images/pie/pie3/PIE3_r1_c2_s2.png',1);"><img src="../images/pie/pie3/PIE3_r1_c2.png" alt="" name="PIE3_r1_c2" width="132" height="51" class="enlaces" id="PIE3_r1_c2" /></a></td>
+              <td><a href="../preguntasfrecuentes.html" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('PIE3_r1_c3','','../images/pie/pie3/PIE3_r1_c3_s2.png',1);"><img src="../images/pie/pie3/PIE3_r1_c3.png" alt="" name="PIE3_r1_c3" width="175" height="51" class="enlaces" id="PIE3_r1_c3" /></a></td>
+              <td><a href="../infoad/comitecientifico.html" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('PIE3_r1_c4','','../images/pie/pie3/PIE3_r1_c4_s2.png',1);"><img name="PIE3_r1_c4" src="../images/pie/pie3/PIE3_r1_c4.png" width="147" height="51" id="PIE3_r1_c4" alt="" /></a></td>
+              <td colspan="2"><a href="../infoad/investigacionydesarrollo.html" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('PIE3_r1_c5','','../images/pie/pie3/PIE3_r1_c5_s2.png',1);"><img src="../images/pie/pie3/PIE3_r1_c5.png" alt="" name="PIE3_r1_c5" width="204" height="51" class="enlaces" id="PIE3_r1_c5" /></a></td>
+              <td><a href="../infoad/centro_receptores.html" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('PIE3_r1_c7','','../images/pie/pie3/PIE3_r1_c7_s2.png',1);"><img src="../images/pie/pie3/PIE3_r1_c7.png" alt="" name="PIE3_r1_c7" width="164" height="51" class="enlaces" id="PIE3_r1_c7" /></a></td>
+              <td colspan="3"><a href="javascript:;" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('PIE3_r1_c8','','../images/pie/pie3/PIE3_r1_c8_s2.png',1);"><img name="PIE3_r1_c8" src="../images/pie/pie3/PIE3_r1_c8.png" width="103" height="51" id="PIE3_r1_c8" alt="" /></a></td>
+              <td><img name="PIE3_r1_c11" src="../images/pie/pie3/PIE3_r1_c11.png" width="47" height="51" id="PIE3_r1_c11" alt="" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="1" height="51" id="undefined_2" /></td>
+            </tr>
+            <tr>
+              <td colspan="11"><a href="javascript:;" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('PIE3_r2_c1','','../images/pie/pie3/PIE3_r2_c1_s2.png',1);"><img name="PIE3_r2_c1" src="../images/pie/pie3/PIE3_r2_c1.png" width="1024" height="14" id="PIE3_r2_c1" alt="" /></a></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="1" height="14" id="undefined_2" /></td>
+            </tr>
+            <tr>
+              <td colspan="11"><img name="PIE3_r3_c1" src="../images/pie/pie3/PIE3_r3_c1.png" width="1024" height="16" id="PIE3_r3_c1" alt="" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="1" height="16" id="undefined_2" /></td>
+            </tr>
+            <tr>
+              <td rowspan="3"><img name="PIE3_r4_c1" src="../images/pie/pie3/PIE3_r4_c1.png" width="52" height="94" id="PIE3_r4_c1" alt="" /></td>
+              <td rowspan="2" colspan="4"><a href="https://www.google.com.ar/maps/preview#!q=Avda.+Boulogne+Sur+Mer+3050&amp;data=!1m4!1m3!1d138!2d-68.8580789!3d-32.8687591!4m15!2m14!1m13!1s0x967e08f6049d22bd%3A0x1d3d82e83138e659!3m8!1m3!1d8830!2d-68.858944!3d-32.8863871!3m2!1i998!2i506!4f13.1!4m2!3d-32.8687392!4d-68.8581806" target="_blank" onmouseover="MM_swapImage('PIE3_r4_c2','','../images/pie/pie3/PIE3_r4_c2_s2.png',1);" onmouseout="MM_swapImgRestore()"><img src="../images/pie/pie3/PIE3_r4_c2.png" alt="" name="PIE3_r4_c2" width="482" height="66" class="enlaces" id="PIE3_r4_c2" /></a></td>
+              <td rowspan="3" colspan="3"><img name="PIE3_r4_c6" src="../images/pie/pie3/PIE3_r4_c6.png" width="353" height="94" id="PIE3_r4_c6" alt="" /></td>
+              <td><a href="https://www.facebook.com/contingencias.climaticas" target="_blank" onmouseover="MM_swapImage('PIE3_r4_c9','','../images/pie/pie3/PIE3_r4_c9_s2.png',1);" onmouseout="MM_swapImgRestore()"><img src="../images/pie/pie3/PIE3_r4_c9.png" alt="" name="PIE3_r4_c9" width="45" height="51" class="enlaces" id="PIE3_r4_c9" /></a></td>
+              <td><a href="https://twitter.com/ContingenciasDA" target="_blank" onmouseover="MM_swapImage('PIE3_r4_c10','','../images/pie/pie3/PIE3_r4_c10_s2.png',1);" onmouseout="MM_swapImgRestore()"><img src="../images/pie/pie3/PIE3_r4_c10.png" alt="" name="PIE3_r4_c10" width="45" height="51" class="enlaces" id="PIE3_r4_c10" /></a></td>
+              <td rowspan="3"><img name="PIE3_r4_c11" src="../images/pie/pie3/PIE3_r4_c11.png" width="47" height="94" id="PIE3_r4_c11" alt="" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="1" height="51" id="undefined_2" /></td>
+            </tr>
+            <tr>
+              <td rowspan="2" colspan="2"><a href="http://sms.idr.org.ar"><img name="smidr" src="../images/sms.png" width="90" height="43" id="smidr" alt="" /></a></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="1" height="15" id="undefined_2" /></td>
+            </tr>
+            <tr>
+              <td colspan="4"><img name="PIE3_r6_c2" src="../images/pie/pie3/PIE3_r6_c2.png" width="482" height="28" id="PIE3_r6_c2" alt="" /></td>
+              <td><img src="../images/pie/pie3/spacer.gif" alt="" name="undefined_2" width="1" height="28" id="undefined_2" /></td>
+            </tr>
+          </table></td>
+        </tr>
+      </table></td>
+  </tr>
+</table>
+
+
+</body>
+<!-- InstanceEnd --></html>
