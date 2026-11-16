@@ -143,6 +143,7 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
 #appHead .bn b{color:#19c5ff;font-weight:800}
 #appHead .creator{font-size:10px;line-height:1.2;text-align:right;color:#a9c6e8;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end}
 #appHead .creator b{color:#19c5ff;font-size:11px;font-weight:700}
+#appHead .creator .bk{font-size:9px;color:#8fb3da;letter-spacing:.01em}
 #appHead .creator a{color:#fff;font-size:11px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:3px}
 #appHead .headActions{display:none!important}
 #mapSearch{display:none;gap:6px;padding:7px;background:#07182b;border-bottom:1px solid #087cc5;flex-shrink:0;z-index:1200}
@@ -195,19 +196,21 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
 @media (min-width:900px) and (hover:hover) and (pointer:fine){
   body,body.mx{max-width:none!important;margin:0!important;border:0!important}
   body.mx #bar,#bar{position:fixed!important;left:12px;bottom:12px;right:auto;width:auto;z-index:1500;display:grid!important;width:318px!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;padding:7px!important;border:1px solid var(--mx-edge,#1d6fa5)!important;border-radius:18px!important;background:rgba(5,17,31,.93)!important;box-shadow:0 8px 26px rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+  body.mx #bar,#bar{border-top-left-radius:0!important;border-top-right-radius:0!important;border-top:1px solid rgba(120,190,255,.18)!important}
   body.mx #bar>button,body.mx #bar>span>button,body.mx #bar #loc{min-height:44px!important;font-size:9px!important;border-radius:11px!important}
   body.mx #bar #loc{grid-column:1/4!important;font-size:10px!important;padding:0 6px!important}
   body.mx #bar #gpsGo{grid-column:4!important}
   body.mx #bar #fcBtn,body.mx #bar #cfgBtn{grid-column:auto!important}
   #bar #fincaDd{grid-column:auto}
   body.mx #bar #sos{grid-column:auto!important}
-  .mx-dock{position:fixed!important;left:12px!important;right:auto!important;bottom:calc(var(--pcBarH,110px) + 24px)!important;width:318px;max-width:calc(100vw - 24px);flex-wrap:wrap;overflow:visible!important;padding:7px!important;gap:5px!important;border-radius:18px!important;z-index:1490!important}
+  .mx-dock{position:fixed!important;left:12px!important;right:auto!important;bottom:calc(var(--pcBarH,110px) + 12px)!important;border-bottom-left-radius:0!important;border-bottom-right-radius:0!important;border-bottom:0!important;box-shadow:0 -6px 20px rgba(0,0,0,.4)!important;width:318px;max-width:calc(100vw - 24px);flex-wrap:wrap;overflow:visible!important;padding:7px!important;gap:5px!important;border-radius:18px!important;z-index:1490!important}
   .mx-chip{min-width:56px!important;height:52px!important;flex:0 0 auto}
   .mx-chip .ic{font-size:19px}.mx-chip .tx{font-size:9px}
   body.mx #mapWeatherInfo{left:auto!important;right:12px!important;bottom:12px!important;width:380px;max-width:calc(100vw - 420px)}
-  body.mx #fincaMenu{left:12px!important;right:auto!important;width:318px!important;bottom:calc(var(--pcBarH,110px) + 24px)!important}
+  body.mx #fincaMenu{left:12px!important;right:auto!important;width:318px!important;bottom:calc(var(--pcBarH,110px) + 150px)!important}
   .mx-sheet{left:0;right:0;margin-inline:auto;width:680px;max-width:100%;border-radius:22px 22px 0 0}
   .mx-hud{max-width:340px}
+  body.mx #al{left:auto!important;right:72px!important;top:8px!important;width:min(500px,calc(100vw - 470px))!important;max-height:46%!important}
   #foot{font-size:10px}
 }
 </style>
@@ -215,7 +218,7 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
 </head>
 <body>
 
-<header id="appHead"><div class="hl"><img class="hIcon" src="icon-192.png" alt="" width="28" height="28"><span class="brand"><span class="bn">Tiempo<b>MDZ</b></span> <button id="licTag" class="lic-tag" type="button" style="display:none" aria-label="Ver mi licencia"></button></span></div><div class="creator"><span>por <b>CodeMarket</b></span><a href="https://wa.me/5492615117220" target="_blank" rel="noopener">🟢 2615117220 ↗</a></div></header>
+<header id="appHead"><div class="hl"><img class="hIcon" src="icon-192.png" alt="" width="28" height="28"><span class="brand"><span class="bn">Tiempo<b>MDZ</b></span> <button id="licTag" class="lic-tag" type="button" style="display:none" aria-label="Ver mi licencia"></button></span></div><div class="creator"><span>Creado por <b>CodeMarket</b></span><a href="https://wa.me/5492615117220" target="_blank" rel="noopener" aria-label="WhatsApp de CodeMarket 2615117220">🟢 2615117220 ↗</a><span class="bk">Respaldado por Fernando Jara ®️</span></div></header>
 <div id="mapSearch"><input id="placeSearch" placeholder="Buscar localidad o provincia (ej. Rafaela, Santa Fe)" autocomplete="off"><button id="placeGo">Buscar</button></div>
 
 <div id="stat">Consultando…</div>

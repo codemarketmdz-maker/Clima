@@ -15,14 +15,14 @@
   ];
   const nativeFetch = g.fetch.bind(g);
   const directBad = {};
-  const cfg = () => (g.CM_CFG && g.CM_CFG.proxy ? String(g.CM_CFG.proxy).replace(/\/+$/, '') : '');
+  const cfg = () => { const c = g.CM_CFG || {}, u = c.proxy || c.licUrl; return u ? String(u).replace(/\/+$/, '') : ''; };
   const short = e => String((e && (e.name === 'AbortError' ? 'tiempo' : e.message)) || e).slice(0, 18);
 
   /* Todas las rutas se piden EN PARALELO y gana la primera que responde bien (antes se probaban una por una y no alcanzaba el tiempo).
      Se ignora el tiempo límite del código que llama: los proxies son más lentos que una conexión directa; el tope propio es MAX_MS. */
   /* Copias hechas por GitHub Actions (data/map.json, ver scripts/fetch-data.mjs): mismo origen, sin CORS, instantáneas.
      Se usan solo si son recientes; si no existen o están viejas, se sigue con proxy propio / públicos. */
-  const SNAP_MAX = 3 * 3600e3;
+  const snapMax = () => cfg() ? 20 * 60e3 : 3 * 3600e3;   // con Worker propio hay datos en vivo: la copia solo sirve si es muy reciente
   let snapMap = null, snapAt = 0, snapPromise = null;
   const snapUrl = p => new URL(p, g.location.href.split('#')[0].replace(/[^\/]*$/, '')).href;
   function loadMap() {
@@ -37,7 +37,7 @@
   async function fromSnapshot(href, u) {
     try {
       const m = await loadMap(); let e = m.items[href];
-      if (!e || Date.now() - e.at > SNAP_MAX) return null;
+      if (!e || Date.now() - e.at > snapMax()) return null;
       const r = await nativeFetch(snapUrl('data/f/' + e.f) + '?v=' + e.at, { cache: 'no-store' });
       return r.ok ? r : null;
     } catch (err) { return null; }
@@ -51,11 +51,11 @@
 
     const href = u.href, base = Object.assign({}, init); delete base.signal; delete base.mode;
     const routes = [];
-    const onlySnap = /zipopendata/i.test(href);   // viene en ZIP: solo sirve la copia ya descomprimida por Actions
+    const onlySnap = /zipopendata/i.test(href) && !cfg();   // viene en ZIP: sin Worker propio solo sirve la copia descomprimida por Actions
     if (onlySnap) return fromSnapshot(href, u).then(sn => { if (sn) return sn; throw new TypeError('SMN datos abiertos: sin copia reciente'); });
     if (TRY_DIRECT.test(u.hostname) && !directBad[u.hostname]) routes.push({ n: 'directo', url: href, direct: true });
-    if (cfg()) routes.push({ n: 'propio', url: cfg() + '/?url=' + encodeURIComponent(href), own: true });
-    else PUBLIC.forEach(p => routes.push({ n: p[0], url: p[1](href) }));
+    if (cfg()) routes.push({ n: 'propio', url: cfg() + '/p?url=' + encodeURIComponent(href), own: true });
+    if (!onlySnap || cfg()) PUBLIC.forEach(p => { if (!/zipopendata/i.test(href)) routes.push({ n: p[0], url: p[1](href) }); });
 
     return fromSnapshot(href, u).then(snap => snap || new Promise((resolve, reject) => {
       const ctrls = [], errs = []; let left = routes.length, done = false, last = null;

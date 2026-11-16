@@ -29,3 +29,14 @@ Pasos (≈10 min, todo desde el navegador):
 4. Worker → Settings → Variables and Secrets: Secrets `SIGN_PRIVATE`, `ADMIN_KEY`, `IP_SALT` (valores 1, 2, 3) y Variable `ALLOWED_ORIGIN` = `https://TU-USUARIO.github.io`.
 5. En `config.js` poné `licUrl` (la URL del Worker) y `licPub` (valor 4). Subí el cambio.
 6. Cuando un cliente te mande su ID por WhatsApp y pague: abrí `admin.html` → clave ADMIN_KEY + URL del Worker → pegá el ID → elegí tipo y plan → **Activar licencia**. Renovar suma días.
+
+## Datos en vivo con el Worker (SMN, INPRES, METAR) y disparador de Actions
+El mismo Worker de licencias ahora tiene la ruta `/p`: lee SMN, INPRES, METAR y Contingencias desde el servidor de Cloudflare más cercano y las entrega a la página (descomprime los ZIP del SMN). La página la usa sola porque ya tiene `licUrl`. Para activarlo solo hay que **volver a pegar `licencias/worker.js` en el Worker y tocar Implementar**.
+
+**Disparador confiable de Actions** (arregla los rayos con 3 horas de atraso y las copias de datos): el "cron" de GitHub se atrasa horas en repositorios chicos. El Worker puede llamar a GitHub cada 5 minutos:
+1. GitHub → Settings (de tu cuenta) → Developer settings → Personal access tokens → Fine-grained → Generate: acceso a los repos `Clima` y `tiempomdz-rayos`, permiso **Actions: Read and write**. Copiá el token.
+2. Cloudflare → Worker → Configuración → Variables y secretos: Secreto `GH_TOKEN` = el token. Texto `DISPATCH` =
+   `[{"repo":"codemarketmdz-maker/tiempomdz-rayos","workflow":"rayos.yml","ref":"main"},{"repo":"codemarketmdz-maker/Clima","workflow":"datos.yml","ref":"main"}]`
+   (poné el nombre real del archivo del workflow de rayos y la rama que usa).
+3. Worker → Configuración → Disparadores → Agregar → Cron → `*/5 * * * *`.
+4. Los workflows deben tener `on: workflow_dispatch:` (datos.yml ya lo tiene; agregalo al de rayos).

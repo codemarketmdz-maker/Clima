@@ -80,7 +80,68 @@ async function admin(req, env, path) {
   return { error: 'ruta desconocida', code: 404 };
 }
 
+
+/* ---------- Proxy de fuentes oficiales (SMN, INPRES, METAR, Contingencias) ----------
+   La página no puede leerlas directo (CORS). El Worker las pide desde el servidor de Cloudflare más cercano y devuelve el texto con CORS.
+   Solo GET, solo estos sitios, y solo desde ALLOWED_ORIGIN. Los ZIP del SMN se descomprimen acá. */
+const PROXY_HOSTS = /^(?:[\w-]+\.)*(?:smn\.gob\.ar|inpres\.gob\.ar|aviationweather\.gov|mendoza\.gov\.ar|tgftp\.ncep\.noaa\.gov)$/i;
+async function zipFirst(buf) {
+  const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  let e = buf.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('zip');
+  let p = dv.getUint32(e + 16, true);
+  for (let n = dv.getUint16(e + 10, true); n > 0; n--) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('zip');
+    const method = dv.getUint16(p + 10, true), cs = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(buf.subarray(p + 46, p + 46 + nl)); p += 46 + nl + xl + cl;
+    if (name.endsWith('/')) continue;
+    const st = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true), raw = buf.subarray(st, st + cs);
+    if (method === 0) return raw;
+    const out = new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw')));
+    return new Uint8Array(await out.arrayBuffer());
+  }
+  throw new Error('zip vacío');
+}
+function toText(buf, charset) {
+  if (charset) { try { return new TextDecoder(charset).decode(buf); } catch (e) { } }
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); } catch (e) { return new TextDecoder('windows-1252').decode(buf); }
+}
+async function proxyFetch(req, cors) {
+  let target; try { target = new URL(new URL(req.url).searchParams.get('url')); } catch (e) { return new Response('url inválida', { status: 400, headers: cors }); }
+  if (!/^https?:$/.test(target.protocol) || !PROXY_HOSTS.test(target.hostname)) return new Response('host no permitido', { status: 403, headers: cors });
+  try {
+    const up = await fetch(target.href, { headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Mobile Safari/537.36', 'Accept': '*/*' }, cf: { cacheTtl: 60, cacheEverything: true }, redirect: 'follow' });
+    const h = { ...cors, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=60' };
+    if (!up.ok) return new Response('upstream ' + up.status, { status: up.status === 429 || up.status === 503 ? up.status : 502, headers: h });
+    let buf = new Uint8Array(await up.arrayBuffer());
+    const ct = up.headers.get('content-type') || '';
+    if (/zip/i.test(ct) || /zipopendata/i.test(target.href) || (buf[0] === 0x50 && buf[1] === 0x4b)) buf = await zipFirst(buf);
+    return new Response(toText(buf, (ct.match(/charset=([^;\s]+)/i) || [])[1]), { status: 200, headers: h });
+  } catch (e) { return new Response('error ' + String(e && e.message || e).slice(0, 60), { status: 502, headers: cors }); }
+}
+
+/* ---------- Disparador confiable (Cron Trigger de Cloudflare) ----------
+   El "cron" de GitHub Actions se atrasa horas en repositorios chicos (por eso los rayos llegaban con 197 min de demora).
+   Este disparador llama a GitHub cada 5 min para ejecutar los workflows en hora.
+   Config: Secret GH_TOKEN (token de GitHub con permiso Actions: Read and write sobre esos repos) y variable DISPATCH, por ejemplo:
+   [{"repo":"codemarketmdz-maker/tiempomdz-rayos","workflow":"rayos.yml","ref":"main"},{"repo":"codemarketmdz-maker/Clima","workflow":"datos.yml","ref":"main"}]
+   Cada workflow debe tener "on: workflow_dispatch". */
+async function dispatchAll(env) {
+  let list = []; try { list = JSON.parse(env.DISPATCH || '[]'); } catch (e) { return; }
+  if (!env.GH_TOKEN) return;
+  await Promise.all(list.slice(0, 5).map(async j => {
+    if (!/^[A-Za-z0-9][\w.-]*\/[A-Za-z0-9][\w.-]*$/.test(j.repo || '') || !/^[A-Za-z0-9][\w.-]*\.ya?ml$/.test(j.workflow || '')) return;
+    try {
+      await fetch('https://api.github.com/repos/' + j.repo + '/actions/workflows/' + j.workflow + '/dispatches', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + env.GH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'tiempomdz-licencias', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: j.ref || 'main' })
+      });
+    } catch (e) { }
+  }));
+}
+
 export default {
+  async scheduled(event, env, ctx) { ctx.waitUntil(dispatchAll(env)); },
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '', allowed = (env.ALLOWED_ORIGIN || '*').split(',').map(s => s.trim());
     const okO = allowed.includes('*') || allowed.includes(origin);
@@ -90,6 +151,7 @@ export default {
     if (!okO) return send({ error: 'origen no permitido' }, 403);
     const path = new URL(req.url).pathname;
     try {
+      if (path === '/p' && req.method === 'GET') return proxyFetch(req, cors);
       if (path === '/status' && req.method === 'POST') return send(await status(req, env));
       if (path.startsWith('/admin/')) return send(await admin(req, env, path));
       return send({ ok: true, servicio: 'tiempomdz-licencias' });
