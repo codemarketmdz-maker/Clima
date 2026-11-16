@@ -1,0 +1,3 @@
+Estación;día;hora
+Mendoza;15;19
+San Martín;15;19

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Generar claves de licencias</title>
+<style>body{margin:0;background:#07182b;color:#f2f7fb;font:15px/1.4 system-ui,sans-serif;padding:16px;max-width:640px;margin-inline:auto}
+h1{font-size:20px}.c{background:#0e2a47;border:1px solid #1d4b78;border-radius:14px;padding:12px;margin:0 0 12px}h2{font-size:13px;margin:0 0 6px;color:#35b6ff}
+textarea{width:100%;min-height:90px;background:#0a2038;color:#fff;border:1px solid #2a5f94;border-radius:10px;padding:8px;font:12px monospace}
+button{min-height:44px;border-radius:10px;border:1px solid #35b6ff;background:#0b4775;color:#fff;font-weight:700;padding:0 14px;margin:6px 6px 0 0}
+.w{color:#ffb020;font-size:13px}</style></head><body>
+<h1>🔐 Generar claves del servidor de licencias</h1>
+<p class="w">Todo se genera en TU navegador; nada se envía a ningún lado. Copiá cada valor donde dice y guardá un respaldo privado (no lo subas a GitHub salvo la clave pública).</p>
+<button id="go">Generar claves</button>
+<div id="out" hidden>
+<div class="c"><h2>1 · Secret SIGN_PRIVATE (Cloudflare → Settings → Variables and Secrets → Secret)</h2><textarea id="a" readonly></textarea><button data-c="a">Copiar</button></div>
+<div class="c"><h2>2 · Secret ADMIN_KEY (tu contraseña para admin.html)</h2><textarea id="b" readonly style="min-height:50px"></textarea><button data-c="b">Copiar</button></div>
+<div class="c"><h2>3 · Secret IP_SALT</h2><textarea id="d" readonly style="min-height:50px"></textarea><button data-c="d">Copiar</button></div>
+<div class="c"><h2>4 · config.js → licPub (clave pública, esta SÍ va en GitHub)</h2><textarea id="e" readonly></textarea><button data-c="e">Copiar</button></div>
+</div>
+<script>
+const $=i=>document.getElementById(i),hex=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(b=>b.toString(16).padStart(2,'0')).join('');
+$('go').onclick=async()=>{const k=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const pub=await crypto.subtle.exportKey('jwk',k.publicKey),prv=await crypto.subtle.exportKey('jwk',k.privateKey);
+ [pub,prv].forEach(j=>{delete j.key_ops;delete j.ext});
+ $('a').value=JSON.stringify(prv);$('b').value=hex(24);$('d').value=hex(16);$('e').value=JSON.stringify(pub);$('out').hidden=false;$('go').textContent='Generar otras (invalida las anteriores)'};
+document.querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>{const t=$(b.dataset.c);t.select();try{await navigator.clipboard.writeText(t.value);b.textContent='✔ Copiado'}catch(e){document.execCommand('copy')}});
+</script></body></html>
