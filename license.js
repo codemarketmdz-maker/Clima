@@ -1,16 +1,23 @@
 /* Licencia: prueba gratis (con funciones Pro) y luego plan Básica o Pro, mensual / semestral / anual.
-   VERSIÓN WEB: la prueba de 5 días se guarda en el navegador y la licencia se pide por WhatsApp. NO es antifraude (borrar los datos del sitio reinicia
-   la prueba); la activación segura de claves necesita un servicio propio. En la app Android sigue la verificación nativa. */
+   VERSIÓN WEB: la licencia es una CLAVE FIJA firmada (TMDZ2.…) que genera el dueño en admin.html a partir del ID del cliente. Lleva ID + tipo + fecha de
+   vencimiento firmados con ECDSA: no depende de ningún servidor, no se reinicia y solo sirve en el equipo del ID. La prueba de 5 días se guarda en el
+   navegador (con copias de respaldo) y NO es antifraude total. En la app Android sigue la verificación nativa. */
 (function (g) {
   'use strict';
   const WEB = !g.AndroidBridge;
   const $ = id => document.getElementById(id);
   const C = g.CM_CFG || {};
   const PLANS = [['M', 'Mensual', '1 mes'], ['S', 'Semestral', '6 meses'], ['A', 'Anual', '12 meses']];
-  const TD0 = C.trialDays || 5, KEY = 'tmdz_web_trial_v2', TOK = 'tmdz_web_token_v3', SEEN = 'tmdz_first_seen';
+  const TD0 = C.trialDays || 5, KEY = 'tmdz_web_trial_v2', TOK = 'tmdz_web_token_v3', SEEN = 'tmdz_first_seen', LIC = 'tmdz_web_lic_v1', MAXT = 'tmdz_web_maxt', DEV = 'tmdz_device_id';
   const lsg = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const lss = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } };
   const ck = n => { const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : null; };
+  // Copia de respaldo en IndexedDB: si se borra localStorage, el ID, la prueba y la licencia se recuperan de acá
+  const idb = () => new Promise((res, rej) => { try { const r = indexedDB.open('tmdz_keep', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } });
+  const idbGet = k => idb().then(d => new Promise(res => { try { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); } catch (e) { res(null); } })).catch(() => null);
+  const idbSet = (k, v) => idb().then(d => new Promise(res => { try { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => res(); } catch (e) { res(); } })).catch(() => { });
+  // Hora de referencia: nunca retrocede (atrasar el reloj del celular no estira la licencia ni la prueba)
+  function nowT() { const m = Number(lsg(MAXT)) || 0, n = Date.now(); if (n > m) { lss(MAXT, String(n)); return n; } return m; }
   // ID de instalación: se guarda en dos lugares (localStorage + cookie) para que borrar uno no lo cambie
   function webDevice() {
     let id = lsg('tmdz_device_id') || ck('tmdz_did');
@@ -39,6 +46,29 @@
     const p = JSON.parse(new TextDecoder().decode(b64d(body)));
     return p.device === device ? p : null;
   }
+  // ---- Licencia fija (clave TMDZ2.…): la genera admin.html; se verifica acá con la clave pública, sin servidor ----
+  let licP = null;
+  const cleanLic = c => String(c || '').replace(/\s+/g, '').replace(/^TMDZ2\./i, '');
+  async function parseLic(code) {
+    if (!C.licPub) return { err: 'Falta configurar la clave pública (licPub) en config.js.' };
+    try {
+      if (!pubKey) pubKey = await crypto.subtle.importKey('jwk', C.licPub, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+      const [body, sig] = cleanLic(code).split('.'); if (!body || !sig) return { err: 'La clave está incompleta. Copiala entera, desde TMDZ2. hasta el final.' };
+      if (!await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, b64d(sig), new TextEncoder().encode(body))) return { err: 'La clave no es válida. Pedila de nuevo.' };
+      const p = JSON.parse(new TextDecoder().decode(b64d(body)));
+      if (p.v !== 2 || !p.d || !p.e) return { err: 'La clave no es válida. Pedila de nuevo.' };
+      return { p };
+    } catch (e) { return { err: 'No pude verificar la clave. Revisá que esté completa.' }; }
+  }
+  async function loadLic() { licP = null; const c = lsg(LIC); if (!c) return; const r = await parseLic(c); if (r.p) licP = r.p; }
+  async function webActivate(code) {
+    const device = webDevice(), r = await parseLic(code);
+    if (!r.p) return { ok: false, msg: r.err };
+    if (r.p.d !== device) return { ok: false, msg: 'Esa clave es para otro equipo (' + r.p.d + '). El ID de este equipo es ' + device + '.' };
+    if (r.p.e <= nowT()) return { ok: false, msg: 'Esa clave ya venció el ' + new Date(r.p.e).toLocaleDateString('es-AR') + '. Pedí una nueva.' };
+    const c = 'TMDZ2.' + cleanLic(code); lss(LIC, c); idbSet(LIC, c); licP = r.p; webSt = null;
+    return { ok: true, msg: '✅ Licencia ' + (r.p.t === 'pro' ? 'PRO' : 'BÁSICA') + ' activada hasta el ' + new Date(r.p.e).toLocaleDateString('es-AR') + '.' };
+  }
   // Estado a partir de un token firmado. La hora sale del servidor (+ el tiempo transcurrido), no del reloj del celular:
   // atrasar la fecha del equipo no estira la prueba.
   function fromToken(p, fetchedAt, device) {
@@ -50,12 +80,22 @@
   }
   function localStatus() {         // sin servidor configurado (licUrl vacío): prueba solo local, NO segura
     let x = null; try { x = JSON.parse(lsg(KEY) || 'null'); } catch (e) { }
-    if (!x || !x.started) { x = { started: Date.now() }; lss(KEY, JSON.stringify(x)); }
-    const left = x.started + TD0 * 864e5 - Date.now();
+    if (!x || !x.started) { const c = Number(ck('tmdz_ts')) || 0; x = { started: c || nowT() }; lss(KEY, JSON.stringify(x)); }
+    try { document.cookie = 'tmdz_ts=' + x.started + '; max-age=63072000; path=/; SameSite=Lax'; } catch (e) { } idbSet(KEY, JSON.stringify(x));
+    const left = x.started + TD0 * 864e5 - nowT();
     return left > 0 ? { state: 'trial', tier: 'pro', msLeft: left, device: webDevice() } : { state: 'expired', reason: 'trial', tier: 'basic', msLeft: 0, device: webDevice() };
   }
   let webSt = null, syncing = false;
   function cachedStatus(device) {
+    if (licP && licP.d === device) {            // licencia fija válida: manda sobre la prueba y sobre el servidor
+      const left = licP.e - nowT();
+      if (left > 0) return { state: 'licensed', tier: licP.t === 'basic' ? 'basic' : 'pro', plan: licP.p, msLeft: left, expiry: licP.e, device };
+    }
+    const s = baseStatus(device);
+    if (s.state === 'expired' && licP && licP.d === device) { s.reason = 'license'; s.expiry = licP.e; }
+    return s;
+  }
+  function baseStatus(device) {
     if (!C.licUrl) return localStatus();
     try { const c = JSON.parse(lsg(TOK) || 'null'); if (c && c.device === device) { const s = fromToken(c.p, c.at, device); if (s) return s; } } catch (e) { }
     // Sin respuesta del servidor ni token vigente: 24 h de gracia desde la primera vez, para no dejar sin avisos por una caída
@@ -118,7 +158,7 @@
 
   function waLink(plan, tier) {
     const p = PLANS.find(x => x[0] === plan);
-    const t = 'Hola ' + (C.brand || '') + ', quiero la licencia ' + TIERS[tier].toUpperCase() + ' ' + p[1].toUpperCase() + ' de TiempoMDZ. Mi ID de celular es: ' + st.device;
+    const t = 'Hola ' + (C.brand || '') + ', quiero la licencia ' + TIERS[tier].toUpperCase() + ' ' + p[1].toUpperCase() + ' de TiempoMDZ. Mi ID de equipo es: ' + st.device;
     return 'https://wa.me/' + (C.waNumber || '') + '?text=' + encodeURIComponent(t);
   }
 
@@ -193,22 +233,41 @@
     $('licClose').onclick = () => $('licModal').classList.remove('active');
     $('licSos').onclick = () => { if (typeof openSOS === 'function') openSOS(''); };
     $('licCopy').onclick = () => { hap(); if (WEB) { try { navigator.clipboard.writeText(st.device).then(() => fb($('licCopy'), 'ok', '✔ Copiado', 1800), () => { $('licMsg').textContent = 'ID: ' + st.device; }); } catch (e) { $('licMsg').textContent = 'ID: ' + st.device; } } else { AndroidBridge.copyText(st.device); fb($('licCopy'), 'ok', '✔ Copiado', 1800); } };
-    $('licPaste').onclick = () => { hap(); const t = AndroidBridge.readClipboard(); if (t) { $('licKey').value = t.trim(); fb($('licPaste'), 'ok', '✔ Pegado', 1500); } else fb($('licPaste'), 'warn', 'Portapapeles vacío', 1800); };
+    $('licPaste').onclick = () => {
+      hap(); const ok = t => { if (t) { $('licKey').value = t.trim(); fb($('licPaste'), 'ok', '✔ Pegado', 1500); } else fb($('licPaste'), 'warn', 'Portapapeles vacío', 1800); };
+      if (WEB) { try { navigator.clipboard.readText().then(ok, () => fb($('licPaste'), 'warn', 'Pegá a mano en el cuadro', 2200)); } catch (e) { fb($('licPaste'), 'warn', 'Pegá a mano en el cuadro', 2200); } } else ok(AndroidBridge.readClipboard());
+    };
     $('licGo').onclick = () => {
       const k = $('licKey').value.trim(), b = $('licGo');
       if (!k) { fb(b, 'warn', 'Pegá la clave', 1800); return; }
       hap(); fb(b, 'busy', '⏳ Verificando…');
-      setTimeout(() => {
-        const r = J('activateLicense', k) || { ok: false, msg: 'No se pudo verificar.' };
+      const done = r => {
+        r = r || { ok: false, msg: 'No se pudo verificar.' };
         const m = $('licMsg'); m.textContent = r.msg; m.className = 'msg ' + (r.ok ? 'ok' : 'bad');
         fb(b, r.ok ? 'ok' : 'bad', r.ok ? '✔ Activada' : '✖ No válida', 2500);
         if (r.ok) { $('licKey').value = ''; refresh(); if (st.state !== 'expired') setTimeout(() => $('licModal').classList.remove('active'), 1800); }
-      }, 400);
+      };
+      if (WEB) webActivate(k).then(done, () => done(null)); else setTimeout(() => done(J('activateLicense', k)), 400);
     };
-    if (WEB) { ['licPaste', 'licKey', 'licGo'].forEach(i => { const e = $(i); if (e) e.style.display = 'none'; }); const t = document.querySelector('#licModal .sec:nth-of-type(2)'); const secs = document.querySelectorAll('#licModal .sec'); if (secs[1]) secs[1].style.display = 'none'; const m = $('licMsg'); if (m) { m.textContent = ''; } }
-    if (WEB) { g.addEventListener('cm-lic-sync', refresh); webSync(); setInterval(() => { if (!document.hidden) webSync(); }, 3 * 3600e3); document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); }); }
-    refresh(); setInterval(() => { if (!document.hidden) refresh(); }, 60000);
-    const r0 = g.onNativeResume; g.onNativeResume = () => { if (r0) r0(); refresh(); };
+    if (WEB) { const k = $('licKey'); if (k) k.placeholder = 'TMDZ2.…'; }
+    const start = () => {
+      if (WEB) { g.addEventListener('cm-lic-sync', refresh); webSync(); setInterval(() => { if (!document.hidden) webSync(); }, 3 * 3600e3); document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); }); }
+      refresh(); setInterval(() => { if (!document.hidden) refresh(); }, 60000);
+      const r0 = g.onNativeResume; g.onNativeResume = () => { if (r0) r0(); refresh(); };
+    };
+    // Web: primero se recuperan ID, prueba y licencia desde el respaldo (por si se borró localStorage) y se verifica la licencia guardada
+    if (WEB) restore().then(start, start); else start();
+  }
+  async function restore() {
+    try {
+      for (const k of [DEV, KEY, LIC]) {
+        const v = lsg(k), iv = await idbGet(k);
+        if (!v && iv) lss(k, iv);
+        else if (v && iv !== v) await idbSet(k, v);
+      }
+      const id = webDevice(); await idbSet(DEV, id);      // si no había ID en ningún lado, recién se crea acá (ya con el respaldo revisado)
+      await loadLic();
+    } catch (e) { }
   }
   g.addEventListener('load', init);
 })(window);

@@ -395,7 +395,7 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
     <div id="licPlans"></div>
     <div class="sec">
       <h3>1 · Pedí tu licencia</h3>
-      <p class="note" style="margin-top:0">Elegí un plan, pagá y mandanos este ID (el botón de WhatsApp ya lo incluye). Te enviamos una clave que sirve solo en este celular.</p>
+      <p class="note" style="margin-top:0">Elegí un plan, pagá y mandanos este ID (el botón de WhatsApp ya lo incluye). Te enviamos una clave que sirve solo en este equipo.</p>
       <div class="devid" id="licDev">····-····</div>
       <div class="pre"><button class="btn" id="licCopy">Copiar ID</button></div>
     </div>
@@ -1388,7 +1388,7 @@ window.addEventListener('offline',()=>setStat('Sin conexión · reintentando cad
 const qp=new URLSearchParams(location.search);
 if(qp.get('alert')!==null){setTimeout(()=>openSOS(qp.get('alert')||''),400)}
 </script>
-<script src="license.js?v=30"></script>
+<script src="license.js?v=31"></script>
 <script>Forecast.init()</script>
 <script src="ui2.js?v=24"></script>
 <script src="hours.js?v=2"></script>

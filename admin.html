@@ -2,53 +2,112 @@
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>Licencias · TiempoMDZ (administración)</title>
 <style>
-:root{--bg:#07182b;--card:#0e2a47;--ink:#f2f7fb;--dim:#9fb4c8;--acc:#35b6ff;--ok:#3ddc97;--bad:#ff4d5e}
+:root{--bg:#07182b;--card:#0e2a47;--ink:#f2f7fb;--dim:#9fb4c8;--acc:#35b6ff;--ok:#3ddc97;--bad:#ff4d5e;--warn:#ffb020}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,sans-serif;padding:16px;max-width:640px;margin-inline:auto}
 h1{font-size:20px;margin:0 0 4px}p.s{color:var(--dim);margin:0 0 14px;font-size:13px}
 .c{background:var(--card);border:1px solid #1d4b78;border-radius:14px;padding:14px;margin:0 0 12px}
 h2{font-size:14px;margin:0 0 8px;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
 label{display:block;font-size:12px;color:var(--dim);margin:8px 0 3px}
-input,select{width:100%;min-height:44px;border-radius:10px;border:1px solid #2a5f94;background:#0a2038;color:#fff;padding:6px 10px;font-size:15px}
-button{min-height:44px;border-radius:10px;border:1px solid var(--acc);background:#0b4775;color:#fff;font-weight:700;padding:0 14px;margin-top:10px;font-size:14px}
-button.r{border-color:var(--bad);background:#5a1520}button:disabled{opacity:.5}
+input,select,textarea{width:100%;min-height:44px;border-radius:10px;border:1px solid #2a5f94;background:#0a2038;color:#fff;padding:6px 10px;font-size:15px}
+textarea{font:12px monospace;min-height:84px}
+button{min-height:44px;border-radius:10px;border:1px solid var(--acc);background:#0b4775;color:#fff;font-weight:700;padding:0 14px;margin:10px 6px 0 0;font-size:14px}
+button.r{border-color:var(--bad);background:#5a1520}button.g{border-color:var(--ok);background:#0d5a3a}
 .row{display:flex;gap:8px}.row>*{flex:1}
-#msg{min-height:22px;font-size:13px;margin:6px 0}.ok{color:var(--ok)}.bad{color:var(--bad)}
-table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:6px 4px;border-bottom:1px solid #1d4b78;text-align:left}
-code{background:#0a2038;padding:1px 5px;border-radius:5px}
+#msg{min-height:22px;font-size:13px;margin:6px 0}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:6px 4px;border-bottom:1px solid #1d4b78;text-align:left;vertical-align:top}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);margin-top:8px}.chk input{width:auto;min-height:0}
+small{color:var(--dim)}
 </style></head><body>
 <h1>🔑 Licencias TiempoMDZ</h1>
-<p class="s">Panel privado. La clave de administración no se guarda en la página: solo en esta pestaña.</p>
-<div class="c"><h2>Acceso</h2>
-<label>Clave de administración (ADMIN_KEY)</label><input id="key" type="password" autocomplete="off">
-<label>Servidor de licencias</label><input id="url" placeholder="https://tiempomdz-licencias.usuario.workers.dev"></div>
-<div class="c"><h2>Dar o renovar licencia</h2>
-<label>ID de instalación del cliente (te lo manda por WhatsApp)</label><input id="dev" placeholder="TMDZ-XXXXXXXXXXXX" autocapitalize="characters">
+<p class="s">El cliente te manda su ID, lo pegás acá y generás su clave. La clave es <b>fija</b> (ID + tipo + fecha de vencimiento firmados): no depende de ningún servidor y no se reinicia.</p>
+
+<div class="c"><h2>1 · Tu clave privada (una sola vez)</h2>
+<label>Clave privada (JSON que imprime <a href="licencias/claves.html" style="color:var(--acc)">claves.html</a> como SIGN_PRIVATE)</label>
+<textarea id="prv" spellcheck="false" autocomplete="off" placeholder='{"kty":"EC","crv":"P-256","d":"…","x":"…","y":"…"}'></textarea>
+<label class="chk"><input type="checkbox" id="rem" checked> Recordar en este celular (queda solo en este navegador, no se envía a ningún lado)</label>
+<div id="keyst" class="warn" style="font-size:13px;margin-top:6px"></div></div>
+
+<div class="c"><h2>2 · Generar licencia</h2>
+<label>ID de instalación del cliente (te lo manda por WhatsApp)</label><input id="dev" placeholder="TMDZ-XXXXXXXXXXXX" autocapitalize="characters" autocomplete="off">
 <div class="row"><div><label>Tipo</label><select id="tier"><option value="pro">Pro</option><option value="basic">Básica</option></select></div>
 <div><label>Plan</label><select id="plan"><option value="M">Mensual (30 días)</option><option value="S">Semestral (182 días)</option><option value="A">Anual (365 días)</option></select></div></div>
-<label>Nota (nombre del cliente, opcional)</label><input id="note" maxlength="80">
-<button id="grant">✅ Activar licencia</button>
-<div class="row"><button id="revoke" class="r">⛔ Quitar licencia</button><button id="reset">↺ Dar prueba otra vez</button></div></div>
+<label>Vence el <small id="hint"></small></label><input id="exp" type="date">
+<label>Nota (nombre del cliente, solo para tu lista)</label><input id="note" maxlength="80">
+<button id="gen" class="g">✅ Generar licencia</button></div>
 <div id="msg"></div>
-<div class="c"><h2>Licencias activas</h2><button id="list" style="margin-top:0">Actualizar lista</button><div id="out" style="margin-top:8px;overflow-x:auto"></div></div>
+
+<div class="c" id="res" hidden><h2>Clave para el cliente</h2>
+<textarea id="code" readonly></textarea>
+<button id="cpcode">📋 Copiar solo la clave</button><button id="cpmsg">📋 Copiar mensaje completo</button><button id="share">📤 Compartir</button>
+<p class="s" style="margin:10px 0 0">Mandale el mensaje por WhatsApp: el cliente abre la app → 🔑 → pega la clave → Activar.</p></div>
+
+<div class="c"><h2>Licencias emitidas (en este celular)</h2>
+<div id="out" style="overflow-x:auto"></div>
+<button id="bk">📋 Copiar respaldo</button><button id="rs">⬇ Restaurar respaldo</button></div>
+
 <script src="config.js"></script>
 <script>
-const $=id=>document.getElementById(id);
-$('url').value=sessionStorage.getItem('adm_url')||(window.CM_CFG&&CM_CFG.licUrl)||'';$('key').value=sessionStorage.getItem('adm_key')||'';
-const say=(t,ok)=>{$('msg').textContent=t;$('msg').className=ok?'ok':'bad'};
-async function call(path,body){
-  const u=$('url').value.trim().replace(/\/+$/,''),k=$('key').value;if(!u||!k){say('Completá la clave y el servidor.');return null}
-  sessionStorage.setItem('adm_url',u);sessionStorage.setItem('adm_key',k);
-  try{const r=await fetch(u+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+k,'Content-Type':'text/plain'},body:body?JSON.stringify(body):undefined});const j=await r.json();if(!r.ok){say('✖ '+(j.error||r.status));return null}return j}
-  catch(e){say('✖ No pude conectar con el servidor.');return null}
-}
-const dev=()=>$('dev').value.trim().toUpperCase();
+const $=id=>document.getElementById(id),enc=new TextEncoder();
+const PLAN={M:30,S:182,A:365},PN={M:'mensual',S:'semestral',A:'anual',X:''};
+const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const say=(t,c)=>{$('msg').textContent=t;$('msg').className=c||''};
 const fmt=ms=>new Date(ms).toLocaleDateString('es-AR');
-$('grant').onclick=async()=>{const j=await call('/admin/grant',{device:dev(),tier:$('tier').value,plan:$('plan').value,note:$('note').value});if(j){say('✔ '+(j.tier==='pro'?'Pro':'Básica')+' activa hasta el '+fmt(j.exp),true);list()}};
-$('revoke').onclick=async()=>{if(!confirm('¿Quitar la licencia de '+dev()+'?'))return;const j=await call('/admin/revoke',{device:dev()});if(j){say('✔ Licencia quitada',true);list()}};
-$('reset').onclick=async()=>{const j=await call('/admin/reset-trial',{device:dev()});if(j)say(j.existia?'✔ Prueba reiniciada: el cliente tiene 5 días otra vez':'No había prueba registrada para ese ID.',j.existia)};
-async function list(){const j=await call('/admin/list');if(!j)return;const o=$('out');o.textContent='';
-  if(!j.licenses.length){o.textContent='Sin licencias.';return}
-  const t=document.createElement('table');t.innerHTML='<tr><th>ID</th><th>Tipo</th><th>Vence</th><th>Nota</th></tr>';
-  j.licenses.forEach(l=>{const r=t.insertRow();[l.device,l.tier==='pro'?'Pro':'Básica',fmt(l.exp)+(l.exp<Date.now()?' (vencida)':''),l.note||''].forEach(v=>{r.insertCell().textContent=v});r.cells[0].style.cursor='pointer';r.cells[0].onclick=()=>{$('dev').value=l.device}});o.appendChild(t)}
-$('list').onclick=list;
+const ls={g:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},d:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+let priv=null,hist=[];try{hist=JSON.parse(ls.g('adm_hist')||'[]')}catch(e){}
+const dev=()=>$('dev').value.trim().toUpperCase();
+const ymd=ms=>{const d=new Date(ms),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())};
+
+async function loadKey(txt){
+  priv=null;$('keyst').className='warn';
+  if(!txt.trim()){$('keyst').textContent='Pegá tu clave privada para poder generar licencias.';return}
+  try{
+    const j=JSON.parse(txt);if(!j.d||!j.x||!j.y)throw 0;
+    priv=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',d:j.d,x:j.x,y:j.y},{name:'ECDSA',namedCurve:'P-256'},false,['sign']);
+    const pub=(window.CM_CFG||{}).licPub;
+    if(pub&&pub.x===j.x&&pub.y===j.y){$('keyst').className='ok';$('keyst').textContent='✔ Clave válida y coincide con la clave pública de config.js'}
+    else{$('keyst').className='warn';$('keyst').textContent='✔ Clave válida, pero NO coincide con licPub de config.js: las claves que generes no van a funcionar en la app hasta que pongas esta clave pública en config.js → licPub: '+JSON.stringify({kty:'EC',crv:'P-256',x:j.x,y:j.y})}
+    if($('rem').checked)ls.s('adm_prv',txt.trim());else ls.d('adm_prv');
+  }catch(e){$('keyst').className='bad';$('keyst').textContent='✖ Esa clave privada no es válida.'}
+}
+$('prv').oninput=()=>loadKey($('prv').value);$('rem').onchange=()=>loadKey($('prv').value);
+const saved=ls.g('adm_prv');if(saved){$('prv').value=saved;loadKey(saved)}else loadKey('');
+
+function lastExp(d){return hist.filter(h=>h.device===d).reduce((m,h)=>Math.max(m,h.exp),0)}
+function suggest(){ // renovar suma días: si ya tiene licencia vigente, se cuenta desde su vencimiento
+  const days=PLAN[$('plan').value],d=dev(),from=Math.max(Date.now(),lastExp(d));
+  $('exp').value=ymd(from+days*864e5);$('hint').textContent=lastExp(d)>Date.now()?'(renueva desde su vencimiento actual, '+fmt(lastExp(d))+')':'';
+}
+$('plan').onchange=suggest;$('dev').oninput=suggest;suggest();
+
+$('gen').onclick=async()=>{
+  if(!priv){say('✖ Primero pegá tu clave privada.','bad');return}
+  const d=dev();if(!/^TMDZ-[A-Z0-9]{12}$/.test(d)){say('✖ ID inválido (formato TMDZ-XXXXXXXXXXXX).','bad');return}
+  const [y,m,dd]=$('exp').value.split('-').map(Number);if(!y){say('✖ Elegí la fecha de vencimiento.','bad');return}
+  const exp=new Date(y,m-1,dd,23,59,59).getTime();if(exp<=Date.now()){say('✖ La fecha de vencimiento ya pasó.','bad');return}
+  const payload={v:2,d,t:$('tier').value,p:$('plan').value,e:exp,i:Date.now()};
+  const body=b64u(enc.encode(JSON.stringify(payload))),sig=await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},priv,enc.encode(body));
+  const code='TMDZ2.'+body+'.'+b64u(sig),tn=payload.t==='pro'?'PRO':'BÁSICA';
+  const msg='Tu licencia '+tn+' '+PN[payload.p]+' de TiempoMDZ está lista ✅ (vence el '+fmt(exp)+').\nAbrí la app → tocá 🔑 → pegá esta clave y tocá Activar:\n\n'+code;
+  hist=hist.filter(h=>!(h.device===d&&h.exp===exp));
+  hist.unshift({device:d,tier:payload.t,plan:payload.p,exp,note:$('note').value.trim(),at:Date.now(),code,msg});
+  ls.s('adm_hist',JSON.stringify(hist.slice(0,300)));
+  $('code').value=code;$('code').dataset.msg=msg;$('res').hidden=false;say('✔ '+tn+' '+PN[payload.p]+' hasta el '+fmt(exp),'ok');draw();
+  $('res').scrollIntoView({behavior:'smooth'});
+};
+async function copy(t,b){try{await navigator.clipboard.writeText(t);const o=b.textContent;b.textContent='✔ Copiado';setTimeout(()=>b.textContent=o,1600)}catch(e){say('Copiá a mano desde el cuadro.','warn')}}
+$('cpcode').onclick=e=>copy($('code').value,e.target);
+$('cpmsg').onclick=e=>copy($('code').dataset.msg||$('code').value,e.target);
+$('share').onclick=()=>{const t=$('code').dataset.msg||$('code').value;if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')};
+
+function draw(){
+  const o=$('out');o.textContent='';if(!hist.length){o.textContent='Todavía no generaste licencias desde este celular.';return}
+  const t=document.createElement('table');t.innerHTML='<tr><th>ID / nota</th><th>Tipo</th><th>Vence</th><th></th></tr>';
+  hist.forEach(h=>{const r=t.insertRow(),a=r.insertCell();a.textContent=h.device+(h.note?' · '+h.note:'');a.style.cursor='pointer';a.onclick=()=>{$('dev').value=h.device;suggest();scrollTo({top:0,behavior:'smooth'})};
+    r.insertCell().textContent=(h.tier==='pro'?'Pro ':'Básica ')+(PN[h.plan]||'');const e=r.insertCell();e.textContent=fmt(h.exp)+(h.exp<Date.now()?' (vencida)':'');
+    const b=document.createElement('button');b.textContent='📋';b.title='Copiar mensaje con la clave';b.style.margin='0';b.onclick=ev=>copy(h.msg||h.code,ev.target);r.insertCell().appendChild(b)});
+  o.appendChild(t);
+}
+$('bk').onclick=e=>copy(JSON.stringify(hist),e.target);
+$('rs').onclick=()=>{const t=prompt('Pegá el respaldo (JSON) que copiaste antes:');if(!t)return;try{const a=JSON.parse(t);if(!Array.isArray(a))throw 0;const seen=new Set(hist.map(h=>h.device+h.exp));a.forEach(h=>{if(h&&h.device&&h.exp&&!seen.has(h.device+h.exp))hist.push(h)});hist.sort((x,y)=>y.at-x.at);ls.s('adm_hist',JSON.stringify(hist));draw();say('✔ Respaldo restaurado','ok')}catch(e){say('✖ Ese respaldo no es válido.','bad')}};
+draw();
 </script></body></html>

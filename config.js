@@ -2,7 +2,8 @@
    waNumber : WhatsApp que recibe los pedidos de licencia (formato internacional, sin + ni espacios).
    mpLinks  : links de pago de Mercado Pago. Estructura: mpLinks.B.M (Básica mensual), .B.S (semestral), .B.A (anual) y lo mismo en .P para Pro.
               Si un plan no tiene link, solo se ofrece pedirlo por WhatsApp.
-   licUrl / licPub : servidor de licencias (licencias/worker.js) y su clave pública. Con ellos la prueba y las licencias las decide el servidor.
+   licPub   : clave PÚBLICA (la imprime licencias/claves.html). OBLIGATORIA para las licencias fijas: la app verifica con ella las claves TMDZ2.… que generás en admin.html.
+   licUrl   : OPCIONAL. Servidor de Cloudflare (licencias/worker.js) solo para la prueba gratis antifraude y el proxy de datos. Las licencias pagas ya NO dependen de él.
    prices   : precio que se muestra en cada plan (texto libre, ej. "$2.500"). Vacío = no se muestra precio.
    limits   : qué incluye cada tipo de licencia. Los avisos OFICIALES del SMN se muestran siempre, en todos los planes.
               fincas       = cantidad máxima de fincas guardadas (además de "Mi ubicación")
@@ -12,8 +13,8 @@
 window.CM_CFG = {
   brand: 'CodeMarket',
   proxy: '',   // opcional (sin usar por ahora): URL de un proxy propio; se usan las copias de GitHub Actions y proxies públicos de respaldo
-  licUrl: 'https://tiempomdz-licencias.codemarketmdz-maker.workers.dev',   // URL del servidor de licencias (licencias/worker.js). Vacío = prueba local sin protección
-  licPub: {"crv":"P-256","kty":"EC","x":"uQ_FFQejNnJtCLPA6-idb0Wk79LQtdCaqhrx4lxfVe0","y":"BHWvWLAy6h9SBBRaZVng5emFcQLxgNSCdzl3gAmPHMU"}, // clave pública (la imprime licencias/gen-keys.mjs)
+  licUrl: '',   // URL del servidor de licencias (licencias/worker.js). Vacío = prueba local sin protección
+  licPub: null, // clave pública (la imprime licencias/gen-keys.mjs)
   waNumber: '5492615117220',
   mpLinks: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },
   prices: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },

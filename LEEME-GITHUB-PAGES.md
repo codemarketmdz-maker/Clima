@@ -17,7 +17,27 @@ La app Android los baja con su propio proxy nativo. En GitHub Pages el navegador
 - Licencia: ver la sección siguiente. Sin voz ni modo ruta (se quitaron).
 - Botón SOS oculto en PC (mouse y pantalla ≥ 900 px).
 
-## Licencias seguras (anti-fraude) — servidor en Cloudflare, gratis
+## Licencias FIJAS (clave firmada, sin servidor) — recomendado
+La licencia es una clave `TMDZ2.…` que lleva adentro el ID del equipo, el tipo (Pro/Básica) y la **fecha de vencimiento**, firmada con tu clave privada. La app la verifica con la clave pública. No se reinicia, no depende de Cloudflare ni de KV y solo sirve en el equipo de ese ID.
+
+**Una sola vez**
+1. Abrí `licencias/claves.html` → **Generar claves**. Guardá un respaldo privado de la clave 1 (SIGN_PRIVATE). Si ya tenías un par de claves, seguí usando el mismo.
+2. Pegá la clave **pública** (valor 4) en `config.js` → `licPub` y subí el cambio a GitHub. (`licUrl` puede quedar vacío.)
+
+**Por cada cliente**
+1. El cliente abre la app → 🔑 → toca **Copiar ID** (o usa el botón de WhatsApp, que ya manda el ID) y te lo envía.
+2. Abrís `admin.html` → pegás tu clave privada (la primera vez; podés dejarla recordada en tu celular) → pegás el ID → elegís tipo y plan → **Generar licencia**.
+3. **Copiar mensaje completo** y se lo mandás por WhatsApp. El cliente pega la clave en 🔑 → **Activar**.
+4. Renovar: generás otra para el mismo ID; el vencimiento se cuenta desde el actual (podés cambiar la fecha a mano).
+
+**Límites a tener en cuenta**
+- No se puede quitar una licencia antes de su fecha (no hay servidor que la revoque). Por eso conviene emitir mensual/semestral/anual con la fecha justa.
+- El ID se guarda en localStorage, cookie e IndexedDB. Si el cliente borra TODOS los datos del sitio y del navegador, tendrá un ID nuevo y hay que generarle otra clave.
+- La prueba gratis sigue siendo local (con copias de respaldo); para blindarla usá el servidor opcional de abajo.
+- La lista "Licencias emitidas" de admin.html vive solo en tu celular: usá **Copiar respaldo** de vez en cuando.
+
+## (Opcional) Prueba gratis antifraude — servidor en Cloudflare, gratis
+(Solo para la prueba de 5 días y el proxy de datos: las licencias pagas ya no lo necesitan. Los pasos 6 de abajo —activar licencias desde el servidor— ya no hacen falta.)
 Sin esto (`licUrl` vacío en config.js) la prueba es solo local y borrar los datos del sitio la reinicia.
 **Qué hace el servidor:** reconoce a un mismo equipo por (1) ID de instalación, (2) huella del dispositivo y (3) IP + huella básica, así que borrar datos, modo incógnito u otro navegador del mismo equipo no reinician la prueba. La respuesta va firmada (ECDSA): la página verifica la firma con la clave pública y calcula el tiempo con la hora del servidor, no la del celular. La IP la lee el servidor y se guarda solo un hash con sal.
 **Qué NO puede impedir:** alguien técnico que edite el código de la página; que cambie de dispositivo, de red y de navegador a la vez; o dos teléfonos idénticos en la misma red (el panel permite reiniciar esa prueba).
