@@ -12,8 +12,8 @@
 window.CM_CFG = {
   brand: 'CodeMarket',
   proxy: '',   // opcional (sin usar por ahora): URL de un proxy propio; se usan las copias de GitHub Actions y proxies públicos de respaldo
-  licUrl: '',   // URL del servidor de licencias (licencias/worker.js). Vacío = prueba local sin protección
-  licPub: null, // clave pública (la imprime licencias/gen-keys.mjs)
+  licUrl: 'https://codemarketmdz-maker.github.io/Clima/licencias/claves.html',   // URL del servidor de licencias (licencias/worker.js). Vacío = prueba local sin protección
+  licPub: {"crv":"P-256","kty":"EC","x":"4JgSlCtAN_41b6wWH-f1Mrq8XJlLc4uPjVBBGtcvLvs","y":"49rA2MQ5_LWqM3XsbP-264i0hWHtJAN4FAhT5VjiF54"}, // clave pública (la imprime licencias/gen-keys.mjs)
   waNumber: '5492615117220',
   mpLinks: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },
   prices: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },
