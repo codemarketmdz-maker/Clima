@@ -262,6 +262,7 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
   <button type="button" id="qRadarInfo">📡<span>Radar</span></button>
   <button type="button" id="qWind">💨<span>Viento</span></button>
   <button type="button" id="qTemp">🌡<span>Temperatura</span></button>
+  <button type="button" data-layer="stn" id="qStn">📍<span>Estaciones</span></button>
   <button type="button" data-layer="quakes" id="qQuakes">🌎<span>Sismos</span></button>
   <button type="button" id="qAlerts">🔔<span>Alertas</span></button>
   <button type="button" id="qForecast">📅<span>14 días</span></button>
@@ -278,6 +279,7 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
 <div class="layerItem">🌧 <span>Lluvia<small>Radar de precipitación</small></span><button data-layer="radar">Activar</button></div>
 <div class="layerItem">⏯ <span>Movimiento de lluvia<small>Animación de radar</small></span><button data-layer="rplay">Reproducir</button></div>
 <div class="layerItem">⛈ <span>Tormentas detectadas<small>Células y desplazamiento medido</small><button data-layer="storms">Ver estado</button></span></div>
+<div class="layerItem">📍 <span>Estaciones del campo<small>FePEDI · ISCAMEN · COVIAR · temperatura y rocío</small></span><button data-layer="stn">Activar</button></div>
 <div class="layerItem">🧭 <span>Ruta de escape<small>Solo cuando hay amenaza identificada</small><button data-layer="esc">Activar</button></div>
 </div>
 <div class="sec"><h3>Otras capas</h3><p class="note">Viento, temperatura, heladas, granizo y niebla se mostrarán cuando exista una fuente nacional validada y cobertura suficiente para representarlos en el mapa. No se dibujan datos estimados como si fueran observaciones.</p></div>
@@ -462,6 +464,7 @@ async function updateGpsName(lat,lon){
     if(n!==GPS_NAME){GPS_NAME=n;LS.set('gpsName',n);buildLocSelect();pushState();syncLocUI&&syncLocUI()}
   }catch(e){}
 }
+const stnX=(e,l)=>window.stnCross?window.stnCross(e,l,cfg):e;
 const monitored=()=>[{id:'gps',name:GPS_NAME,lat:pos.lat,lon:pos.lon},...fincas];
 const curLoc=()=>selId==='gps'?{id:'gps',name:GPS_NAME,lat:pos.lat,lon:pos.lon}:(fincas.find(f=>f.id===selId)||{id:'gps',name:GPS_NAME,lat:pos.lat,lon:pos.lon});
 const cur=()=>curLoc();
@@ -819,7 +822,7 @@ async function checkOthers(){
   attachCloudTops(arr,ct);
   try{await Promise.race([attachObserved(arr,list),new Promise(r=>setTimeout(r,7000))])}catch(e){}
   const ev=[];
-  arr.forEach((d,i)=>{if(d&&d.current&&list[i])ev.push(...detectPoint(d.current,d.hourly,cfg,list[i].name),...(official[i]||[]))});
+  arr.forEach((d,i)=>{if(d&&d.current&&list[i])ev.push(...stnX(detectPoint(d.current,d.hourly,cfg,list[i].name),list[i]),...(official[i]||[]))});
   for(let i=0;i<list.length;i++){
     const l=list[i],d=arr[i];
     try{const tr=await buildTrackForLocation(l,d&&d.hourly);radarTracksByLoc[l.id]=tr;const te=trackingEvent(tr,l.name);if(te)ev.push(te)}catch(e){}
@@ -838,7 +841,7 @@ function combine(){
 async function render(){
   if(!last)return;
   const P=cur(),H=last[0],c=H.c,ring=last.slice(1);
-  const ev=[...detectPoint(c,H.h,cfg,P.name),...mainOfficialEv];
+  const ev=[...stnX(detectPoint(c,H.h,cfg,P.name),P),...mainOfficialEv];
   const trackAlert=trackingEvent(radarTrack,P.name);if(trackAlert)ev.push(trackAlert);
 
   overlay.clearLayers();
@@ -1392,6 +1395,8 @@ if(qp.get('alert')!==null){setTimeout(()=>openSOS(qp.get('alert')||''),400)}
 <script>Forecast.init()</script>
 <script src="ui2.js?v=24"></script>
 <script src="hours.js?v=2"></script>
+<script src="radar.js?v=2"></script>
+<script src="stations.js?v=1"></script>
 <script>/* PC: mide la barra de acciones para apilar las capas encima */
 (function(){const q=matchMedia('(min-width:900px) and (hover:hover) and (pointer:fine)'),b=document.getElementById('bar');if(!b)return;
 function fit(){document.documentElement.style.setProperty('--pcBarH',(q.matches?b.offsetHeight:0)+'px')}

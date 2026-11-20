@@ -12,9 +12,9 @@
               Si el plan no incluye "hail", un granizo se avisa como "tormenta fuerte". */
 window.CM_CFG = {
   brand: 'CodeMarket',
-  proxy: '',   // opcional (sin usar por ahora): URL de un proxy propio; se usan las copias de GitHub Actions y proxies públicos de respaldo
+  proxy: '',   // URL del Worker de Cloudflare (licencias/worker.js). Necesaria para el botón 📡 Radar y mejora los datos en vivo. Con licUrl vacío no activa el servidor de licencias.
   licUrl: '',   // URL del servidor de licencias (licencias/worker.js). Vacío = prueba local sin protección
-  licPub: {"crv":"P-256","kty":"EC","x":"0pqPEKG5pzNzVQW3kDJIEQQ5mx6cPTija2XKRsCQVIQ","y":"_YMt8pJjr_LdLvncUko940ZTNhmo8A4MQkwR_76Xn5Q"}, // clave pública (la imprime licencias/gen-keys.mjs)
+  licPub: null, // clave pública (la imprime licencias/gen-keys.mjs)
   waNumber: '5492615117220',
   mpLinks: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },
   prices: { B: { M: '', S: '', A: '' }, P: { M: '', S: '', A: '' } },

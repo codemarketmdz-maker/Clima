@@ -16,6 +16,7 @@ const CAP_FEED = 'https://ssl.smn.gob.ar/CAP/AR.php';
 const SOURCES = [
   { url: 'https://aviationweather.gov/api/data/metar?ids=' + METAR_IDS.join(',') + '&format=raw&hours=3', label: 'METAR' },
   ...METAR_IDS.map(id => ({ url: 'https://tgftp.ncep.noaa.gov/data/observations/metar/stations/' + id + '.TXT', label: 'METAR ' + id })),
+  { url: 'https://fepedi.evolus.com.ar/estaciones/data.json', label: 'Estaciones FePEDI/ISCAMEN/COVIAR' },
   { url: 'https://www.inpres.gob.ar/mapa/sismos.xml', label: 'INPRES xml' },
   { url: 'https://www.inpres.gob.ar/seismology/xultimos.html', label: 'INPRES html' },
   { url: 'https://contingencias.mendoza.gov.ar/web1/Alertadeheladas/alertadeheladas.php', label: 'Mendoza heladas' },

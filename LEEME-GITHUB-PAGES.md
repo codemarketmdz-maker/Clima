@@ -50,6 +50,24 @@ Pasos (≈10 min, todo desde el navegador):
 5. En `config.js` poné `licUrl` (la URL del Worker) y `licPub` (valor 4). Subí el cambio.
 6. Cuando un cliente te mande su ID por WhatsApp y pague: abrí `admin.html` → clave ADMIN_KEY + URL del Worker → pegá el ID → elegí tipo y plan → **Activar licencia**. Renovar suma días.
 
+## Radar del SMN (botón 📡 Radar)
+Muestra las últimas 12 imágenes de radar (cada 10 min) con animación: Santa Rosa (Mendoza), Mosaico Centro, Mosaico Argentina y algunos radares vecinos. Las imágenes y su lista pasan por tu Worker de Cloudflare (que las guarda 2–5 min para no pedirle de más al SMN).
+1. Cloudflare → tu Worker → Edit code → pegá de nuevo `licencias/worker.js` → Deploy.
+2. No hace falta cargar ningún token: el SMN confirmó que el uso es público y que no tiene otro, así que el Worker toma el mismo token que entrega su página de radar a cualquier visitante y lo renueva solo (dura 1 hora). Si algún día el SMN te da uno propio, guardalo como **Secreto** `SMN_TOKEN` y el Worker usa ese. Conviene tener la confirmación del SMN por escrito (un mail alcanza).
+3. Variable `ALLOWED_ORIGIN` = `https://TU-USUARIO.github.io` (si no la tenías).
+4. En `config.js` poné la URL del Worker en **`proxy`** (dejá `licUrl` vacío si no usás el servidor de prueba gratis). Subí el cambio.
+Si el servidor no logra el acceso, el botón avisa que pruebes de nuevo en unos minutos.
+
+## Estaciones del campo (FePEDI · ISCAMEN · COVIAR)
+Capa **📍 Estaciones** (barra de capas y menú 🗺 Capas): 56 estaciones, cada una con su temperatura actual en el mapa; al tocarla muestra humedad, punto de rocío y mín./máx. del día. Los datos vienen de `fepedi.evolus.com.ar/estaciones/data.json` (EVOLUS IoT) y se actualizan cada minuto.
+**Cruce con las alertas** (usa estaciones online a menos de 30 km de tu ubicación o de cada finca, con lectura de menos de 90 min):
+- **Helada registrada**: si una estación cercana ya está en el umbral de helada (el de ⚙ Avisos, 2 °C por defecto) → alerta de nivel alto con la estación y la hora de la lectura.
+- **Helada anticipada** (de noche): estima la mínima del amanecer con la temperatura, el punto de rocío y el enfriamiento medido en la última hora (el enfriamiento se frena al acercarse al punto de rocío). Avisa "Riesgo" si la estimación llega al umbral y "Vigilancia" si queda a menos de 1,5 °C. No considera nubes ni viento: es una estimación, no una medición. El enfriamiento se calcula con el historial que la página va guardando mientras está abierta (últimas 3 h).
+- **Tormenta**: si 2 o más estaciones bajan 4 °C o más en 45 min, se agrega esa observación a las alertas de tormenta del lugar.
+**Granizo:** estas estaciones no miden granizo, lluvia ni viento, así que no pueden confirmarlo. El granizo se sigue evaluando con modelo, satélite y radar.
+**Cobertura:** las estaciones están en el sur de Mendoza (Valle de Uco y San Rafael, aprox. entre 32,7° y 35° S). Los lugares fuera de ese radio no reciben el cruce.
+Nada que configurar: el host ya está permitido en `proxy.js` y en el Worker, y GitHub Actions guarda una copia de respaldo del `data.json`.
+
 ## Datos en vivo con el Worker (SMN, INPRES, METAR) y disparador de Actions
 El mismo Worker de licencias ahora tiene la ruta `/p`: lee SMN, INPRES, METAR y Contingencias desde el servidor de Cloudflare más cercano y las entrega a la página (descomprime los ZIP del SMN). La página la usa sola porque ya tiene `licUrl`. Para activarlo solo hay que **volver a pegar `licencias/worker.js` en el Worker y tocar Implementar**.
 

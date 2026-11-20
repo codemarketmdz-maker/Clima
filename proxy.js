@@ -6,7 +6,7 @@
    Si ninguno responde, el error llega al código existente, que ya lo informa como "sin datos" (nunca "sin riesgo"). */
 (function (g) {
   'use strict';
-  const HOSTS = /^(?:[\w-]+\.)*(?:smn\.gob\.ar|inpres\.gob\.ar|aviationweather\.gov|mendoza\.gov\.ar|tgftp\.ncep\.noaa\.gov)$/i;
+  const HOSTS = /^(?:[\w-]+\.)*(?:smn\.gob\.ar|inpres\.gob\.ar|aviationweather\.gov|mendoza\.gov\.ar|tgftp\.ncep\.noaa\.gov|fepedi\.evolus\.com\.ar)$/i;
   const TRY_DIRECT = /(^|\.)aviationweather\.gov$/i;   // algunos endpoints de NOAA sí traen CORS: se prueba directo una vez
   const PUBLIC = [
     ['allorigins', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
