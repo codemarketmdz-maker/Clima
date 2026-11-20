@@ -50,17 +50,22 @@ Pasos (≈10 min, todo desde el navegador):
 5. En `config.js` poné `licUrl` (la URL del Worker) y `licPub` (valor 4). Subí el cambio.
 6. Cuando un cliente te mande su ID por WhatsApp y pague: abrí `admin.html` → clave ADMIN_KEY + URL del Worker → pegá el ID → elegí tipo y plan → **Activar licencia**. Renovar suma días.
 
-## Radar del SMN (botón 📡 Radar)
-Muestra las últimas 12 imágenes de radar (cada 10 min) con animación: Santa Rosa (Mendoza), Mosaico Centro, Mosaico Argentina y algunos radares vecinos. Las imágenes y su lista pasan por tu Worker de Cloudflare (que las guarda 2–5 min para no pedirle de más al SMN).
-1. Cloudflare → tu Worker → Edit code → pegá de nuevo `licencias/worker.js` → Deploy.
-2. No hace falta cargar ningún token: el SMN confirmó que el uso es público y que no tiene otro, así que el Worker toma el mismo token que entrega su página de radar a cualquier visitante y lo renueva solo (dura 1 hora). Si algún día el SMN te da uno propio, guardalo como **Secreto** `SMN_TOKEN` y el Worker usa ese. Conviene tener la confirmación del SMN por escrito (un mail alcanza).
-3. Variable `ALLOWED_ORIGIN` = `https://TU-USUARIO.github.io` (si no la tenías).
-4. En `config.js` poné la URL del Worker en **`proxy`** (dejá `licUrl` vacío si no usás el servidor de prueba gratis). Subí el cambio.
+## Servidor de datos (obligatorio para 📡 Radar y 📍 Estaciones)
+El radar del SMN y las estaciones FePEDI no se pueden leer directo desde una página de GitHub (los sitios no lo permiten) y los proxies públicos fallan casi siempre. Hace falta **un solo** Worker gratis de Cloudflare, que además guarda los datos 30 s–5 min para no pedirles de más. Sin él, el botón 📡 dice "Falta configurar el servidor" y 📍 no muestra estaciones.
+1. Entrá a **dash.cloudflare.com** → **Workers & Pages** → **Create** → **Create Worker** → ponele un nombre (ej. `tiempomdz`) → **Deploy**.
+2. **Edit code** → borrá todo → pegá el contenido completo de **`licencias/worker-datos.js`** → **Deploy**. (No hace falta KV, secretos ni variables.)
+3. Copiá la dirección del Worker (algo como `https://tiempomdz.TU-CUENTA.workers.dev`) y probá en el navegador: `…/health` debe decir `"ok":true` y `…/estaciones` debe mostrar una lista de estaciones.
+4. En `config.js` poné esa dirección en **`proxy: 'https://…workers.dev'`** (sin barra al final), dejá `licUrl: ''` y subí el cambio a GitHub.
+El token del radar lo obtiene el Worker solo (el SMN confirmó que el uso es público y que no tiene otro) y lo renueva cada hora. Si algún día el SMN te da uno propio, guardalo como Secreto `SMN_TOKEN`. El Worker solo acepta pedidos desde `https://codemarketmdz-maker.github.io` (cambiable con la variable `ALLOWED_ORIGIN`).
+
+## Radar del SMN (botón 📡 Radar SMN)
+Está en la barra de arriba, al lado de **🗺 Capas**. Muestra las últimas 12 imágenes de radar (cada 10 min) con animación: Santa Rosa (Mendoza), Mosaico Centro, Mosaico Argentina y algunos radares vecinos.
+
 **Radar sobre el mapa (Santa Rosa):** en la ventana del radar, botón **🗺 Ver sobre el mapa**. Reproyecta la imagen del SMN a coordenadas (calibrada con 12 ciudades, error típico de 1 a 3 km), descarta fondo, mapa, textos y leyenda, y deja solo los ecos. Abajo aparece una barra con animación, deslizador de cuadros, **opacidad** y filtro **desde cuántos dBZ** mostrar (≥ 15 dBZ por defecto; lluvia fuerte desde ~35, núcleos de granizo posible desde ~50–55). Los otros radares y los mosaicos se ven solo en la ventana, porque faltan imágenes de ejemplo para calibrarlos.
 Si el servidor no logra el acceso, el botón avisa que pruebes de nuevo en unos minutos.
 
 ## Estaciones del campo (FePEDI · ISCAMEN · COVIAR)
-Capa **📍 Estaciones** (barra de capas y menú 🗺 Capas): 56 estaciones, cada una con su temperatura actual en el mapa; al tocarla muestra humedad, punto de rocío y mín./máx. del día. Los datos vienen de `fepedi.evolus.com.ar/estaciones/data.json` (EVOLUS IoT) y se actualizan cada minuto.
+Capa **📍 Estaciones** (en la fila de botones de capas, junto a 🌡 Temperatura y 🌎 Sismos, y en el menú 🗺 Capas; la primera vez el mapa se acerca solo a donde están las estaciones): 56 estaciones, cada una con su temperatura actual en el mapa; al tocarla muestra humedad, punto de rocío y mín./máx. del día. Los datos vienen de `fepedi.evolus.com.ar/estaciones/data.json` (EVOLUS IoT) y se actualizan cada minuto.
 **Cruce con las alertas** (usa estaciones online a menos de 30 km de tu ubicación o de cada finca, con lectura de menos de 90 min):
 - **Helada registrada**: si una estación cercana ya está en el umbral de helada (el de ⚙ Avisos, 2 °C por defecto) → alerta de nivel alto con la estación y la hora de la lectura.
 - **Helada anticipada** (de noche): estima la mínima del amanecer con la temperatura, el punto de rocío y el enfriamiento medido en la última hora (el enfriamiento se frena al acercarse al punto de rocío). Avisa "Riesgo" si la estimación llega al umbral y "Vigilancia" si queda a menos de 1,5 °C. No considera nubes ni viento: es una estimación, no una medición. El enfriamiento se calcula con el historial que la página va guardando mientras está abierta (últimas 3 h).
@@ -69,7 +74,7 @@ Capa **📍 Estaciones** (barra de capas y menú 🗺 Capas): 56 estaciones, cad
 - **Tormenta**: si 2 o más estaciones bajan 4 °C o más en 45 min, se agrega esa observación a las alertas de tormenta del lugar.
 **Granizo:** estas estaciones no miden granizo, lluvia ni viento, así que no pueden confirmarlo. El granizo se sigue evaluando con modelo, satélite y radar.
 **Cobertura:** las estaciones están en el sur de Mendoza (Valle de Uco y San Rafael, aprox. entre 32,7° y 35° S). Los lugares fuera de ese radio no reciben el cruce.
-Nada que configurar: el host ya está permitido en `proxy.js` y en el Worker, y GitHub Actions guarda una copia de respaldo del `data.json`.
+Necesita el servidor de datos de arriba. Un cartel sobre el mapa dice cuántas estaciones cargaron o por qué no.
 
 ## Datos en vivo con el Worker (SMN, INPRES, METAR) y disparador de Actions
 El mismo Worker de licencias ahora tiene la ruta `/p`: lee SMN, INPRES, METAR y Contingencias desde el servidor de Cloudflare más cercano y las entrega a la página (descomprime los ZIP del SMN). La página la usa sola porque ya tiene `licUrl`. Para activarlo solo hay que **volver a pegar `licencias/worker.js` en el Worker y tocar Implementar**.

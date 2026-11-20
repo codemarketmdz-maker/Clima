@@ -12,7 +12,7 @@
   const COLORS = { FEPEDI: '#f5b301', ISCAMEN: '#ff7a1a', COVIAR: '#9b5de5' };
   const lsg = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const lss = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } };
-  let list = [], at = 0, hist = {}, group = null, on = false, timer = null, first = true;
+  let list = [], at = 0, hist = {}, group = null, on = false, timer = null, first = true, fitted = false;
   try { hist = JSON.parse(lsg(HK) || '{}') || {}; } catch (e) { hist = {}; }
 
   const f1 = x => (Math.round(x * 10) / 10).toFixed(1).replace('.', ',');
@@ -173,16 +173,25 @@
   g.stnNearby = (lat, lon, radius) => nearby(lat, lon, radius || RADIUS_KM, 12);
 
   // ---------------- Datos ----------------
+  const proxyBase = () => String((g.CM_CFG && g.CM_CFG.proxy) || '').replace(/\/+$/, '');
   async function load() {
-    const t = Math.floor(Date.now() / 60e3);
-    for (const u of [BASE + '?t=' + t, BASE]) {       // en vivo; si falla, la copia que guarda GitHub Actions
+    const t = Math.floor(Date.now() / 60e3), b = proxyBase();
+    for (const u of (b ? [b + '/estaciones?t=' + t, BASE + '?t=' + t, BASE] : [BASE + '?t=' + t, BASE])) {       // en vivo (Worker propio); si falla, proxies públicos y la copia de GitHub Actions
       try {
         const r = await fetch(u, { cache: 'no-store' }); if (!r.ok) continue;
         const j = JSON.parse(await r.text()); if (!Array.isArray(j) || !j.length) continue;
-        list = j.map(norm).filter(s => s.lat != null && s.lon != null); at = Date.now(); remember(list); paint(); afterFirst(); return true;
+        list = j.map(norm).filter(s => s.lat != null && s.lon != null); at = Date.now(); remember(list); paint(); afterFirst(); status(true); return true;
       } catch (e) { }
     }
-    return false;
+    status(false); return false;
+  }
+  // Cartel chico sobre el mapa: dice cuántas estaciones hay o por qué no cargan
+  function status(ok) {
+    if (!on) return; let c = document.getElementById('stnInfo');
+    if (!c) { c = document.createElement('div'); c.id = 'stnInfo'; c.style.cssText = 'position:fixed;left:8px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:1000;max-width:78vw;background:rgba(7,24,43,.95);color:#fff;border:1px solid #2a5f94;border-radius:10px;padding:7px 10px;font:12.5px system-ui,sans-serif'; document.body.appendChild(c); }
+    clearTimeout(c._t);
+    if (ok) { const n = list.filter(s => s.ok).length; c.style.display = 'block'; c.style.borderColor = '#2a5f94'; c.textContent = '📍 ' + n + ' estaciones con datos de hace menos de 90 min (' + list.length + ' en total) · tocá una para ver el detalle'; c._t = setTimeout(() => { c.style.display = 'none'; }, 9000); }
+    else { c.style.display = 'block'; c.style.borderColor = '#ff6b6b'; c.textContent = proxyBase() ? '📍 No pude traer las estaciones ahora. Reintento en 1 minuto.' : '📍 No pude traer las estaciones: falta configurar el servidor (proxy en config.js).'; }
   }
   let firstN = true;
   function afterFirst(n) {
@@ -207,13 +216,14 @@
       mk.addTo(group);
     });
     if (!m.hasLayer(group)) group.addTo(m);
+    if (!fitted && list.length) { fitted = true; try { m.fitBounds(g.L.latLngBounds(list.map(s => [s.lat, s.lon])).pad(0.1), { maxZoom: 10 }); } catch (e) { } }   // la primera vez, el mapa se acerca a donde están las estaciones
   }
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function toggle() {
     const b = document.getElementById('stn'), m = mapObj(); on = !on;
     if (b) b.classList.toggle('on', on);
     const q = document.getElementById('qStn'); if (q) { q.classList.toggle('on', on); q.setAttribute('aria-pressed', String(on)); }
-    if (on) { if (!list.length) load().then(paint); else paint(); } else if (group && m && m.hasLayer(group)) m.removeLayer(group);
+    if (on) { if (!list.length) load().then(paint); else { paint(); status(true); } } else { if (group && m && m.hasLayer(group)) m.removeLayer(group); const c = document.getElementById('stnInfo'); if (c) c.style.display = 'none'; }
   }
   function init() {
     const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
