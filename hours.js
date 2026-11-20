@@ -12,7 +12,7 @@
 
   // Resume una hora: texto + nivel de atención (0 normal, 1 atención, 2 peligro)
   function judge(h, cfg) {
-    const windKmh = (cfg && cfg.windKmh) || 60, frostC = (cfg && Number.isFinite(+cfg.frostC)) ? +cfg.frostC : 2;
+    const windKmh = (cfg && cfg.windKmh) || 60, frostC = (cfg && Number.isFinite(+cfg.frostC)) ? +cfg.frostC : 3;
     const tags = []; let lvl = 0;
     const k = typeof root.stormClass === 'function' ? root.stormClass(h.code, h.pr || 0, {}) : null;
     if (k === 'hail') { tags.push('⛈ Tormenta severa'); lvl = 2; }

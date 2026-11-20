@@ -71,35 +71,89 @@
   const hhmm = ms => new Date(ms).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Argentina/Mendoza' });
   const median = a => { const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
+  // ---------------- Condiciones de la noche (modelo: temperatura, viento y nubes hasta el amanecer) ----------------
+  const NIGHT = {};
+  function night(lat, lon) {
+    const k = lat.toFixed(1) + ',' + lon.toFixed(1), n = NIGHT[k];
+    if ((!n || Date.now() - n.at > 30 * 60e3) && !(n && n.busy)) { NIGHT[k] = Object.assign(n || { at: 0 }, { busy: true }); fetchNight(k, lat, lon); }
+    return n && n.t ? n : null;
+  }
+  async function fetchNight(k, lat, lon) {
+    try {
+      const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(3) + '&longitude=' + lon.toFixed(3) + '&hourly=temperature_2m,wind_speed_10m,cloud_cover&forecast_hours=18&timezone=auto&wind_speed_unit=kmh');
+      const j = await r.json(), off = (j.utc_offset_seconds || 0) * 1000, H = j.hourly;
+      const t = H.time.map(x => { const m = /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(x); return Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5]) - off; });
+      const first = !(NIGHT[k] && NIGHT[k].t); NIGHT[k] = { at: Date.now(), t, T: H.temperature_2m, W: H.wind_speed_10m, C: H.cloud_cover };
+      if (first) afterFirst(true);
+    } catch (e) { NIGHT[k] = { at: Date.now() - 20 * 60e3 }; }     // reintenta en 10 min
+  }
+  function conditions(nt, now, sr) {
+    if (!nt) return null;
+    let i = -1; for (let j = 0; j < nt.t.length; j++) { if (nt.t[j] <= now) i = j; else break; }
+    if (i < 0 || !Number.isFinite(nt.T[i])) return null;
+    const nx = Number.isFinite(nt.T[i + 1]) ? nt.T[i + 1] : nt.T[i], frac = Math.min(1, (now - nt.t[i]) / 3.6e6), mNow = nt.T[i] + frac * (nx - nt.T[i]);
+    const end = (sr != null ? sr : now + 12 * 3.6e6) + 3600e3; let mMin = null; const W = [], C = [];
+    for (let j = i + 1; j < nt.t.length && nt.t[j] <= end; j++) {
+      if (Number.isFinite(nt.T[j])) mMin = mMin == null ? nt.T[j] : Math.min(mMin, nt.T[j]);
+      if (Number.isFinite(nt.W[j])) W.push(nt.W[j]); if (Number.isFinite(nt.C[j])) C.push(nt.C[j]);
+    }
+    const k3 = Number.isFinite(nt.T[i + 3]) ? i + 3 : null, rateM = k3 != null ? (mNow - nt.T[k3]) / ((nt.t[k3] - now) / 3.6e6) : null;
+    const wMax = W.length ? Math.max(...W) : null, wMean = W.length ? W.reduce((a, x) => a + x, 0) / W.length : null, cMean = C.length ? C.reduce((a, x) => a + x, 0) / C.length : null;
+    return { mNow, mMin, rateM, wMax, cMean, calm: wMax != null && wMax <= 10, clear: cMean != null && cMean <= 35, windy: wMax != null && (wMean >= 15 || wMax >= 25), cloudy: cMean != null && cMean >= 70 };
+  }
+  function condText(c) {
+    if (!c) return '';
+    const w = c.wMax != null ? Math.round(c.wMax) : null, n = c.cMean != null ? Math.round(c.cMean) : null;
+    if (c.clear && c.calm) return 'Cielo despejado (' + n + ' % de nubes) y viento calmo (hasta ' + w + ' km/h): condiciones de máximo enfriamiento.';
+    if (c.windy) return 'Viento de hasta ' + w + ' km/h' + (n != null ? ' y ' + n + ' % de nubes' : '') + ': el aire mezclado frena el enfriamiento.';
+    if (c.cloudy) return 'Cielo cubierto (' + n + ' % de nubes): se enfría menos.';
+    return 'Nubosidad ' + (n != null ? n + ' %' : '—') + ', viento hasta ' + (w != null ? w : '—') + ' km/h.';
+  }
+  const trendText = r => r == null ? '' : r > 0.3 ? 'está bajando ' + f1(r) + ' °C/h' : r < -0.3 ? 'está subiendo ' + f1(-r) + ' °C/h' : 'se mantiene estable';
+
   // ---------------- Cruce con las alertas ----------------
   function cross(ev, loc, cfg) {
+    if (cfg && cfg.stnCross === false) return ev;
     if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lon) || !list.length || Date.now() - at > 20 * 60e3) return ev;
-    const near = nearby(loc.lat, loc.lon, RADIUS_KM, 6); if (!near.length) return ev;
-    const lim = Number.isFinite(Number(cfg && cfg.frostC)) ? Number(cfg.frostC) : 2, now = Date.now(), place = loc.name, out = ev.slice(), mine = [];
+    const radius = Math.max(5, Math.min(100, Number(cfg && cfg.stnKm) || RADIUS_KM));
+    const near = nearby(loc.lat, loc.lon, radius, 6); if (!near.length) return ev;
+    const lim = Number.isFinite(Number(cfg && cfg.frostC)) ? Number(cfg.frostC) : 3, now = Date.now(), place = loc.name, out = ev.slice(), mine = [];
     const names = a => a.slice(0, 2).map(s => s.name + ' (' + Math.round(s.km) + ' km)').join(' y ');
-    // A) Helada registrada: una estación cercana ya está en el umbral
+    const sr = sunriseMs(loc.lat, loc.lon, now), cnd = conditions(night(loc.lat, loc.lon), now, sr), ct = condText(cnd);
     const hit = near.filter(s => s.t <= lim);
     if (hit.length) {
-      const s = hit[0], cnt = hit.length;
-      mine.push({ type: 'frost', level: 3, title: 'Riesgo de helada', place, detail: 'Estaciones cercanas ya registran ' + f1(s.t) + ' °C: ' + names(hit) + (cnt > 2 ? ' y otras ' + (cnt - 2) : '') + ' (lectura de hace ' + Math.round(s.ageMin) + ' min). Activá la protección antihelada ahora.' });
+      // A) Helada registrada: una estación cercana ya está en el umbral
+      const s = hit[0], cnt = hit.length, tr = trendText(rate(s.id, 150, 40));
+      mine.push({ type: 'frost', level: 3, title: 'Riesgo de helada', place, detail: 'Estaciones cercanas ya registran ' + f1(s.t) + ' °C (umbral ' + f1(lim) + ' °C): ' + names(hit) + (cnt > 2 ? ' y otras ' + (cnt - 2) : '') + '; lectura de hace ' + Math.round(s.ageMin) + ' min' + (tr ? ' y ' + tr : '') + '. ' + ct + ' Activá la protección antihelada ahora.' });
     } else if (localHour(now) >= 18 || localHour(now) < 9) {
-      // B) Anticipación nocturna: el enfriamiento se frena al acercarse al punto de rocío (T(t) = piso + (T0 − piso)·e^(−t/τ), piso = rocío − 2 °C)
+      // B) Anticipación nocturna con estaciones + modelo (viento y nubes)
       const set = near.slice(0, 4), w = s => 1 / (s.km + 3), sw = set.reduce((a, s) => a + w(s), 0);
       const T0 = set.reduce((a, s) => a + s.t * w(s), 0) / sw, tds = set.filter(s => s.td != null), Td = tds.length ? tds.reduce((a, s) => a + s.td * w(s), 0) / tds.reduce((a, s) => a + w(s), 0) : null;
-      const rs = set.map(s => rate(s.id, 150, 40)).filter(r => r != null && r > 0.15), r = rs.length ? Math.min(3, median(rs)) : null, sr = sunriseMs(loc.lat, loc.lon, now);
+      const rs = set.map(s => rate(s.id, 150, 40)).filter(r => r != null), rSt = rs.length ? median(rs) : null, rEff = rSt != null ? rSt : (cnd && cnd.rateM != null ? cnd.rateM : null), rSrc = rSt != null ? 'medido en las estaciones' : 'según el modelo';
       const hrs = sr == null ? null : (sr - now) / 3.6e6;
       if (Td != null && hrs != null && hrs > 0 && hrs < 15 && T0 > lim) {
-        const floor = Td - 2, basis = 'Estimación con ' + set.length + ' estación' + (set.length > 1 ? 'es' : '') + ' (' + names(set) + '): ahora ' + f1(T0) + ' °C, punto de rocío ' + f1(Td) + ' °C' + (r != null ? ', enfriándose ' + f1(r) + ' °C/h' : '') + '. No considera nubes ni viento.';
-        if (r != null && T0 > floor + 0.2) {
-          const tau = (T0 - floor) / r, tEst = floor + (T0 - floor) * Math.exp(-hrs / tau);
-          if (tEst <= lim && floor < lim) {
-            const hit = tau * Math.log((T0 - floor) / (lim - floor)), when = hit > 0 && hit < hrs ? ' Llegaría al umbral hacia las ' + hhmm(now + hit * 3.6e6) + '.' : '';
-            mine.push({ type: 'frost', level: 2, title: 'Riesgo de helada', place, detail: 'Se estima una mínima de ' + f1(tEst) + ' °C hacia el amanecer (' + hhmm(sr) + ').' + when + ' ' + basis });
-          } else if (tEst <= lim + 1.5) {
-            mine.push({ type: 'frost', level: 1, title: 'Riesgo de helada', place, detail: 'Vigilancia: la mínima estimada para el amanecer es de ' + f1(tEst) + ' °C, cerca del umbral de helada (' + f1(lim) + ' °C). ' + basis });
-          }
-        } else if (r == null && Td <= lim + 1 && T0 <= 9) {
-          mine.push({ type: 'frost', level: 1, title: 'Riesgo de helada', place, detail: 'Vigilancia: el punto de rocío es muy bajo (' + f1(Td) + ' °C) y hay ' + f1(T0) + ' °C ahora. Con cielo despejado y sin viento la temperatura podría llegar a helada. Estaciones: ' + names(set) + '.' });
+        const floor = Td - 2, rc = rEff != null ? Math.min(3, rEff) : null;
+        // 1) enfriamiento que se frena al acercarse al punto de rocío: T(t) = piso + (T0 − piso)·e^(−t/τ), piso = rocío − 2 °C
+        const estRad = rc != null && rc > 0.15 && T0 > floor + 0.2 ? floor + (T0 - floor) * Math.exp(-hrs * rc / (T0 - floor)) : null;
+        // 2) mínima del modelo hasta el amanecer, corregida por la diferencia entre lo medido y lo que el modelo tenía ahora
+        const estMod = cnd && cnd.mMin != null ? cnd.mMin + Math.max(-5, Math.min(5, T0 - cnd.mNow)) : null;
+        let est = null;
+        if (cnd && (cnd.windy || cnd.cloudy)) est = estMod != null ? estMod : (estRad != null ? estRad + 1.5 : null);     // viento o nubes: manda el modelo
+        else if (cnd && cnd.clear && cnd.calm) est = estRad != null && estMod != null ? Math.min(estRad, estMod) : (estRad != null ? estRad : estMod);   // despejado y calmo: la peor de las dos
+        else est = estRad != null && estMod != null ? (estRad + estMod) / 2 : (estRad != null ? estRad : estMod);
+        let eta = null;      // hora en que llegaría al umbral
+        if (rEff != null && rEff > 0.15) {
+          if (estRad != null && floor < lim) { const hh = (T0 - floor) / rc * Math.log((T0 - floor) / (lim - floor)); if (hh > 0 && hh < hrs) eta = now + hh * 3.6e6; }
+          else { const hh = (T0 - lim) / rEff; if (hh > 0 && hh <= 3) eta = now + hh * 3.6e6; }
+        }
+        const basis = 'Estaciones: ' + names(set) + '. Ahora ' + f1(T0) + ' °C, punto de rocío ' + f1(Td) + ' °C' + (rEff != null ? ', ' + trendText(rEff) + ' (' + rSrc + ')' : '') + '. ' + ct;
+        let lvl = 0;
+        if (est != null && est <= lim) lvl = 2; else if (eta != null && eta - now <= 3 * 3.6e6 && !(cnd && (cnd.windy || cnd.cloudy) && est != null && est > lim + 1.5)) lvl = 2; else if (est != null && est <= lim + 1.5) lvl = 1;
+        if (lvl) {
+          const head = est != null && est <= lim ? 'Se estima una mínima de ' + f1(est) + ' °C hacia el amanecer (' + hhmm(sr) + ').' : (lvl === 2 ? 'Se acerca al umbral de ' + f1(lim) + ' °C.' : 'Vigilancia: la mínima estimada para el amanecer es de ' + f1(est) + ' °C, cerca del umbral de ' + f1(lim) + ' °C.');
+          mine.push({ type: 'frost', level: lvl, title: 'Riesgo de helada', place, detail: head + (eta != null ? ' Llegaría a ' + f1(lim) + ' °C hacia las ' + hhmm(eta) + '.' : '') + ' ' + basis + ' Es una estimación.' });
+        } else if (est == null && Td <= lim + 1 && T0 <= lim + 6) {
+          mine.push({ type: 'frost', level: 1, title: 'Riesgo de helada', place, detail: 'Vigilancia: el punto de rocío es muy bajo (' + f1(Td) + ' °C) y hay ' + f1(T0) + ' °C ahora. Con cielo despejado y sin viento podría llegar a helada. ' + basis });
         }
       }
     }
@@ -130,8 +184,9 @@
     }
     return false;
   }
-  function afterFirst() {
-    if (!first) return; first = false;
+  let firstN = true;
+  function afterFirst(n) {
+    if (n) { if (!firstN) return; firstN = false; } else { if (!first) return; first = false; }
     try { if (typeof render === 'function' && typeof last !== 'undefined' && last) render(); } catch (e) { }
   }
 

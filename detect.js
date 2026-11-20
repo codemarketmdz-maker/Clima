@@ -11,7 +11,7 @@
     stormApproach:{ icon: '🌩️', label: 'Tormenta en aproximación', desc: 'Célula observada que se desplaza hacia la ubicación' },
     hail:        { icon: '🧊', label: 'Tormenta severa / granizo', desc: 'Topes de nube muy fríos o tormenta muy inestable: posible granizo' },
     quake:       { icon: '🏛️', label: 'Sismo',           desc: 'Sismos cercanos' },
-    frost:       { icon: '❄️', label: 'Riesgo de helada', desc: 'Temperatura prevista cercana o inferior a 2 °C' }
+    frost:       { icon: '❄️', label: 'Riesgo de helada', desc: 'Temperatura medida o prevista en el umbral de helada elegido (3 °C por defecto)' }
   };
   /* Se acerca una tormenta con topes de nube igual o más fríos que esto (°C): se avisa como “posible granizo”. */
   g.HAIL_TOP_C = -58;
@@ -130,7 +130,7 @@
   g.DEFAULT_CFG = {
     notify: { wind: true, zonda: true, stormWeak: false, stormStrong: true, stormApproach: true, hail: true, quake: true, frost: true },
     escape: true,
-    windKmh: 60, quakeMag: 4, quakeKm: 300, repeatMin: 60, sound: true, vibrate: true, alertLeadMin: 60, frostC: 2
+    windKmh: 60, quakeMag: 4, quakeKm: 300, repeatMin: 60, sound: true, vibrate: true, alertLeadMin: 60, frostC: 3, stnCross: true, stnKm: 30
   };
   g.mergeCfg = function (s) {
     s = s || {};
@@ -266,7 +266,7 @@
       });
     }
     // Riesgo de helada: temperatura actual o prevista dentro de la ventana elegida.
-    const frostLimit = Number.isFinite(Number(cfg.frostC)) ? Number(cfg.frostC) : 2;
+    const frostLimit = Number.isFinite(Number(cfg.frostC)) ? Number(cfg.frostC) : 3;
     let frostAt = c.temperature_2m != null && c.temperature_2m <= frostLimit ? 0 : null;
     const frostSeries = (m15.temperature_2m || []).length ? m15.temperature_2m : (h.temperature_2m || []);
     frostSeries.forEach((v, i) => {

@@ -328,7 +328,9 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
       <div class="opt"><span>Sismo desde magnitud</span><select id="oMag"></select></div>
       <div class="opt"><span>Sismo dentro de</span><select id="oKm"></select></div>
       <div class="opt"><span>Anticipación de tormentas y contingencias</span><select id="oLead"><option value="45">45 minutos</option><option value="60">60 minutos</option><option value="90">90 minutos</option></select></div>
-      <div class="opt"><span>Riesgo de helada desde</span><select id="oFrost"><option value="0">0 °C</option><option value="1">1 °C</option><option value="2">2 °C</option><option value="3">3 °C</option></select></div>
+      <div class="opt"><span>Riesgo de helada desde</span><select id="oFrost"><option value="0">0 °C</option><option value="1">1 °C</option><option value="2">2 °C</option><option value="3">3 °C</option><option value="4">4 °C</option><option value="5">5 °C</option><option value="6">6 °C</option></select></div>
+      <div class="opt"><span>Cruzar helada y tormentas con estaciones cercanas</span><select id="oStn"><option value="1">Sí</option><option value="0">No</option></select></div>
+      <div class="opt"><span>Radio de las estaciones</span><select id="oStnKm"><option value="10">10 km</option><option value="20">20 km</option><option value="30">30 km</option><option value="50">50 km</option><option value="80">80 km</option></select></div>
       <div class="opt"><span>Repetir el mismo aviso cada</span><select id="oRep"></select></div>
     </div>
     <div class="sec">
@@ -441,6 +443,7 @@ const $=id=>document.getElementById(id);
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 
 let cfg=mergeCfg(LS.get('climaCfg',{}));
+if(cfg.frostV!==3){if(Number(cfg.frostC)===2)cfg.frostC=3;cfg.frostV=3;LS.set('climaCfg',cfg)}   // el umbral de helada por defecto pasó de 2 a 3 °C
 let pos=LS.get('lastPos',{lat:-32.8895,lon:-68.8458}), located=false, last=null, quakes=[], live=LS.get('gpsLive',true), watchId=null;
 let fincas=LS.get('fincas',null);
 if(!fincas){ // migración de la versión anterior
@@ -1182,7 +1185,7 @@ $('cfgBtn').onclick=()=>{
   fillSel('oKm',[100,200,300,500],cfg.quakeKm,v=>v+' km',v=>cfg.quakeKm=v);
   fillSel('oRep',[15,30,60,120,240],cfg.repeatMin,v=>v<60?v+' min':(v/60)+' h',v=>cfg.repeatMin=v);
   $('oSound').checked=cfg.sound;$('oVib').checked=cfg.vibrate;
-  $('oLead').value=String(cfg.alertLeadMin||60);$('oFrost').value=String(cfg.frostC==null?2:cfg.frostC);
+  $('oLead').value=String(cfg.alertLeadMin||60);$('oFrost').value=String(cfg.frostC==null?3:cfg.frostC);$('oStn').value=cfg.stnCross===false?'0':'1';$('oStnKm').value=String(cfg.stnKm||30);
   permState();regPeriodic().then(bgStatus);
   $('cfgModal').classList.add('active');
 };
@@ -1192,7 +1195,9 @@ $('oVib').onchange=e=>{cfg.vibrate=e.target.checked;saveCfg()};
 $('oLead').onchange=e=>{cfg.alertLeadMin=Math.max(45,Math.min(90,Number(e.target.value)||60));saveCfg()};
 function paintTierLocks(){const o=$('oFrost');if(!o)return;const ok=cmCan('frost');o.disabled=!ok;const sp=o.parentElement&&o.parentElement.querySelector('span');if(sp){sp.textContent='Riesgo de helada desde'+(ok?'':' 🔒 Pro')}}
 window.addEventListener('cm-tier',()=>{paintTierLocks();try{analyze(true)}catch(e){}});paintTierLocks();
-$('oFrost').onchange=e=>{cfg.frostC=Math.max(0,Math.min(3,Number(e.target.value)||0));saveCfg()};
+$('oFrost').onchange=e=>{cfg.frostC=Math.max(0,Math.min(6,Number(e.target.value)||0));saveCfg();try{analyze(true)}catch(x){}};
+$('oStn').onchange=e=>{cfg.stnCross=e.target.value!=='0';saveCfg();try{analyze(true)}catch(x){}};
+$('oStnKm').onchange=e=>{cfg.stnKm=Math.max(5,Math.min(100,Number(e.target.value)||30));saveCfg();try{analyze(true)}catch(x){}};
 $('closeCfg').onclick=()=>$('cfgModal').classList.remove('active');
 $('layerBtn').onclick=()=>{$('layerModal').classList.add('active');document.querySelectorAll('[data-layer]').forEach(b=>{const t=$(b.dataset.layer);if(t)b.textContent=t.classList.contains('on')?'Desactivar':'Activar';});};
 $('closeLayers').onclick=()=>$('layerModal').classList.remove('active');
@@ -1395,7 +1400,7 @@ if(qp.get('alert')!==null){setTimeout(()=>openSOS(qp.get('alert')||''),400)}
 <script>Forecast.init()</script>
 <script src="ui2.js?v=24"></script>
 <script src="hours.js?v=2"></script>
-<script src="radar.js?v=2"></script>
+<script src="radar.js?v=3"></script>
 <script src="stations.js?v=1"></script>
 <script>/* PC: mide la barra de acciones para apilar las capas encima */
 (function(){const q=matchMedia('(min-width:900px) and (hover:hover) and (pointer:fine)'),b=document.getElementById('bar');if(!b)return;
