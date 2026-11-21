@@ -165,7 +165,7 @@ async function radarRoute(req, env, cors, path) {
     const f = q.get('f') || '';
     if (!RADAR_FILE.test(f)) return json({ error: 'archivo inválido' }, 400);
     try {
-      const up = await fetch('https://estaticos.smn.gob.ar/vmsr/radar/' + f, { cf: { cacheTtl: 300, cacheEverything: true } });
+      const up = await fetch('https://estaticos.smn.gob.ar/vmsr/radar/' + f, { headers: { 'User-Agent': SMN_UA, 'Accept': 'image/webp,image/png,image/*;q=0.8' }, cf: { cacheTtl: 300, cacheEverything: true } });
       if (!up.ok) return json({ error: 'el SMN respondió ' + up.status }, up.status === 404 ? 404 : 502);
       return new Response(up.body, { status: 200, headers: { ...cors, 'Content-Type': up.headers.get('content-type') || 'image/png', 'Cache-Control': 'public, max-age=300' } });
     } catch (e) { return json({ error: 'no pude consultar al SMN' }, 502); }

@@ -140,7 +140,7 @@
     if (q) { let j = null; try { j = JSON.parse(q.x); } catch (e) { } if (q.r.ok && Array.isArray(j)) P('✔ /estaciones  OK · ' + j.length + ' estaciones (' + q.ms + ' ms)'); else { bad++; P('✖ /estaciones  HTTP ' + q.r.status); P('   ' + hint(q.r.status, q.x)); } } else bad++;
     q = await get('/radar/list', '/radar/list?id=RMA19_240');
     if (q) { let j = null; try { j = JSON.parse(q.x); } catch (e) { } if (q.r.ok && j && Array.isArray(j.list) && j.list.length) { first = j.list[0]; P('✔ /radar/list  OK · ' + j.list.length + ' imágenes · última: ' + first + ' (' + q.ms + ' ms)'); } else { bad++; P('✖ /radar/list  HTTP ' + q.r.status); P('   ' + (j && j.error ? '→ ' + j.error : hint(q.r.status, q.x))); } } else bad++;
-    if (first) { q = await get('/radar/img', '/radar/img?f=' + encodeURIComponent(first), true); if (q) { if (q.r.ok && q.x.size > 1000) P('✔ /radar/img  OK · ' + Math.round(q.x.size / 1024) + ' KB · ' + (q.x.type || 'imagen')); else { bad++; P('✖ /radar/img  HTTP ' + q.r.status); } } else bad++; }
+    if (first) { q = await get('/radar/img', '/radar/img?f=' + encodeURIComponent(first), true); if (q) { if (q.r.ok && q.x.size > 1000) P('✔ /radar/img  OK · ' + Math.round(q.x.size / 1024) + ' KB · ' + (q.x.type || 'imagen')); else { bad++; let d = ''; try { d = JSON.parse(await q.x.text()).error || ''; } catch (e) { } P('✖ /radar/img  HTTP ' + q.r.status + (d ? ' · ' + d : '')); } } else bad++; }
     P('\n' + (bad ? '✖ Hay ' + bad + ' prueba(s) con error. Copiá este texto y mandámelo.' : '✔ Todo funciona: el radar y las estaciones deberían verse.'));
   }
 
