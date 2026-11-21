@@ -15,7 +15,7 @@
   ];
   const nativeFetch = g.fetch.bind(g);
   const directBad = {};
-  const cfg = () => { const c = g.CM_CFG || {}, u = c.proxy || c.licUrl; return u ? String(u).replace(/\/+$/, '') : ''; };
+  const cfg = () => { const c = g.CM_CFG || {}; let u = String(c.proxy || c.licUrl || '').trim(); if (!u) return ''; if (!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/+/, ''); return u.replace(/\/+$/, ''); };
   const short = e => String((e && (e.name === 'AbortError' ? 'tiempo' : e.message)) || e).slice(0, 18);
 
   /* Todas las rutas se piden EN PARALELO y gana la primera que responde bien (antes se probaban una por una y no alcanzaba el tiempo).

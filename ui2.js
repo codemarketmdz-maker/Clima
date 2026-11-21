@@ -416,12 +416,12 @@
     else { S[k] = v; LSs('mx_layers', S); if (k === 'smn') safe('smn', applySmn); else if (k === 'rayos') safe('rayos', () => applyRayos(true)); else safe('grid', () => refreshGrid(false)); }
     setTimeout(syncUI, 60);
   }
-  const isOn = k => (k in S) ? S[k] : (st[k] ? st[k]() : (k === 'esc' ? !!($('esc') && $('esc').classList.contains('on')) : false));
+  const isOn = k => k === 'stn' ? !!($('stn') && $('stn').classList.contains('on')) : (k in S) ? S[k] : (st[k] ? st[k]() : (k === 'esc' ? !!($('esc') && $('esc').classList.contains('on')) : false));
 
   /* ---------- dock ---------- */
   const dock = el('div', 'mx-dock'); dock.setAttribute('role', 'toolbar'); dock.setAttribute('aria-label', 'Capas del mapa');
   const CHIPS = [
-    ['ir', '☁️', 'Nubes'], ['rain', '🌧', 'Lluvia'], ['rayos', '⚡', 'Rayos'], ['wind', '💨', 'Viento'], ['dir', '🧭', 'Rumbo'], ['temp', '🌡', 'Temp.'], ['act:alerts', '🔔', 'Alertas']
+    ['ir', '☁️', 'Nubes'], ['rain', '🌧', 'Lluvia'], ['rayos', '⚡', 'Rayos'], ['wind', '💨', 'Viento'], ['dir', '🧭', 'Rumbo'], ['temp', '🌡', 'Temp.'], ['stn', '📍', 'Estaciones'], ['act:alerts', '🔔', 'Alertas']
   ];
   CHIPS.forEach(([k, ic, tx]) => {
     const b = el('button', 'mx-chip' + (k.startsWith('act:') ? ' act' : ''), '<span class="ic">' + ic + '</span><span class="tx">' + tx + '</span>');
@@ -432,6 +432,7 @@
       else if (k === 'act:mza') openOfficial('mza');
       else if (k === 'act:quakes') openOfficial('quakes');
       else if (k === 'act:fc') click('fcBtn');
+      else if (k === 'stn') { click('stn'); setTimeout(syncUI, 80); }
       else setLayer(k, !isOn(k));
     };
     dock.appendChild(b);

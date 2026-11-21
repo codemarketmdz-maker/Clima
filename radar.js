@@ -7,7 +7,7 @@
 (function (g) {
   'use strict';
   const C = g.CM_CFG || {}, $ = id => document.getElementById(id);
-  const base = () => String(C.proxy || C.licUrl || '').replace(/\/+$/, '');
+  const base = () => { let u = String(C.proxy || C.licUrl || '').trim(); if (!u) return ''; if (!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/+/, ''); return u.replace(/\/+$/, ''); };
   const RADARS = [['RMA19_240', 'Santa Rosa (Mendoza)'], ['COMP_CEN', 'Mosaico Centro'], ['COMP_ARG', 'Mosaico Argentina'], ['RMA15_240', 'Patquía (La Rioja)'],
     ['RMA16_240', 'Villa Reynolds (San Luis)'], ['ANG_240', 'Anguil (La Pampa)'], ['RMA7_240', 'Neuquén (Neuquén)']];
   // Calibración medida sobre la imagen de Santa Rosa con 12 ciudades (error típico 1–3 km): centro del radar, 520 px = 240 km, panel del mapa en la imagen.

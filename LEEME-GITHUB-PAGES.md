@@ -51,21 +51,22 @@ Pasos (≈10 min, todo desde el navegador):
 6. Cuando un cliente te mande su ID por WhatsApp y pague: abrí `admin.html` → clave ADMIN_KEY + URL del Worker → pegá el ID → elegí tipo y plan → **Activar licencia**. Renovar suma días.
 
 ## Servidor de datos (obligatorio para 📡 Radar y 📍 Estaciones)
-El radar del SMN y las estaciones FePEDI no se pueden leer directo desde una página de GitHub (los sitios no lo permiten) y los proxies públicos fallan casi siempre. Hace falta **un solo** Worker gratis de Cloudflare, que además guarda los datos 30 s–5 min para no pedirles de más. Sin él, el botón 📡 dice "Falta configurar el servidor" y 📍 no muestra estaciones.
-1. Entrá a **dash.cloudflare.com** → **Workers & Pages** → **Create** → **Create Worker** → ponele un nombre (ej. `tiempomdz`) → **Deploy**.
-2. **Edit code** → borrá todo → pegá el contenido completo de **`licencias/worker-datos.js`** → **Deploy**. (No hace falta KV, secretos ni variables.)
-3. Copiá la dirección del Worker (algo como `https://tiempomdz.TU-CUENTA.workers.dev`) y probá en el navegador: `…/health` debe decir `"ok":true` y `…/estaciones` debe mostrar una lista de estaciones.
-4. En `config.js` poné esa dirección en **`proxy: 'https://…workers.dev'`** (sin barra al final), dejá `licUrl: ''` y subí el cambio a GitHub.
-El token del radar lo obtiene el Worker solo (el SMN confirmó que el uso es público y que no tiene otro) y lo renueva cada hora. Si algún día el SMN te da uno propio, guardalo como Secreto `SMN_TOKEN`. El Worker solo acepta pedidos desde `https://codemarketmdz-maker.github.io` (cambiable con la variable `ALLOWED_ORIGIN`).
+El radar del SMN y las estaciones FePEDI no se pueden leer directo desde la página (los sitios no lo permiten) y los proxies públicos fallan casi siempre. Hace falta **un Worker propio** de Cloudflare, gratis, que además guarda los datos 30 s–5 min para no pedirles de más. Sin él, el botón 📡 dice "Falta configurar el servidor" y 📍 no muestra estaciones.
+**Importante:** si tu página está en `https://clima.codemarketmdz.workers.dev`, ese Worker es el que sirve los archivos; el de datos tiene que ser **otro Worker, con otro nombre** (ej. `datos`).
+1. En **dash.cloudflare.com** → **Workers & Pages** → **Create** → **Create Worker** → nombre `datos` → **Deploy**.
+2. **Edit code** → seleccioná todo y borralo → pegá el contenido completo de **`licencias/worker-datos.js`** → **Deploy**. (No hace falta KV, secretos ni variables.)
+3. Probá en el navegador (cambiá la dirección por la tuya): `https://datos.TU-CUENTA.workers.dev/health` debe decir `"ok":true` y `…/estaciones` debe mostrar una lista de estaciones.
+4. En `config.js` poné esa dirección **completa, con https://**, en `proxy: 'https://datos.TU-CUENTA.workers.dev'` (sin barra al final), dejá `licUrl: ''` y volvé a publicar la página.
+El Worker acepta pedidos desde `https://clima.codemarketmdz.workers.dev` y `https://codemarketmdz-maker.github.io`; para otra dirección usá la variable `ALLOWED_ORIGIN`. El token del radar lo obtiene el Worker solo (el SMN confirmó que el uso es público y que no tiene otro) y lo renueva cada hora; si el SMN te da uno propio, guardalo como Secreto `SMN_TOKEN`.
 
 ## Radar del SMN (botón 📡 Radar SMN)
-Está en la barra de arriba, al lado de **🗺 Capas**. Muestra las últimas 12 imágenes de radar (cada 10 min) con animación: Santa Rosa (Mendoza), Mosaico Centro, Mosaico Argentina y algunos radares vecinos.
+Está en el panel de abajo a la izquierda (**Radar SMN**), junto a Buscar, Fincas y Avisos. Muestra las últimas 12 imágenes de radar (cada 10 min) con animación: Santa Rosa (Mendoza), Mosaico Centro, Mosaico Argentina y algunos radares vecinos.
 
 **Radar sobre el mapa (Santa Rosa):** en la ventana del radar, botón **🗺 Ver sobre el mapa**. Reproyecta la imagen del SMN a coordenadas (calibrada con 12 ciudades, error típico de 1 a 3 km), descarta fondo, mapa, textos y leyenda, y deja solo los ecos. Abajo aparece una barra con animación, deslizador de cuadros, **opacidad** y filtro **desde cuántos dBZ** mostrar (≥ 15 dBZ por defecto; lluvia fuerte desde ~35, núcleos de granizo posible desde ~50–55). Los otros radares y los mosaicos se ven solo en la ventana, porque faltan imágenes de ejemplo para calibrarlos.
 Si el servidor no logra el acceso, el botón avisa que pruebes de nuevo en unos minutos.
 
 ## Estaciones del campo (FePEDI · ISCAMEN · COVIAR)
-Capa **📍 Estaciones** (en la fila de botones de capas, junto a 🌡 Temperatura y 🌎 Sismos, y en el menú 🗺 Capas; la primera vez el mapa se acerca solo a donde están las estaciones): 56 estaciones, cada una con su temperatura actual en el mapa; al tocarla muestra humedad, punto de rocío y mín./máx. del día. Los datos vienen de `fepedi.evolus.com.ar/estaciones/data.json` (EVOLUS IoT) y se actualizan cada minuto.
+Capa **📍 Estaciones** (en la fila de capas del panel de abajo a la izquierda, junto a Temp. y Alertas; la primera vez el mapa se acerca solo a donde están las estaciones): 56 estaciones, cada una con su temperatura actual en el mapa; al tocarla muestra humedad, punto de rocío y mín./máx. del día. Los datos vienen de `fepedi.evolus.com.ar/estaciones/data.json` (EVOLUS IoT) y se actualizan cada minuto.
 **Cruce con las alertas** (usa estaciones online a menos de 30 km de tu ubicación o de cada finca, con lectura de menos de 90 min):
 - **Helada registrada**: si una estación cercana ya está en el umbral de helada (el de ⚙ Avisos, 2 °C por defecto) → alerta de nivel alto con la estación y la hora de la lectura.
 - **Helada anticipada** (de noche): estima la mínima del amanecer con la temperatura, el punto de rocío y el enfriamiento medido en la última hora (el enfriamiento se frena al acercarse al punto de rocío). Avisa "Riesgo" si la estimación llega al umbral y "Vigilancia" si queda a menos de 1,5 °C. No considera nubes ni viento: es una estimación, no una medición. El enfriamiento se calcula con el historial que la página va guardando mientras está abierta (últimas 3 h).

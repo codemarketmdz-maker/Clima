@@ -173,7 +173,7 @@
   g.stnNearby = (lat, lon, radius) => nearby(lat, lon, radius || RADIUS_KM, 12);
 
   // ---------------- Datos ----------------
-  const proxyBase = () => String((g.CM_CFG && g.CM_CFG.proxy) || '').replace(/\/+$/, '');
+  const proxyBase = () => { let u = String((g.CM_CFG && g.CM_CFG.proxy) || '').trim(); if (!u) return ''; if (!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/+/, ''); return u.replace(/\/+$/, ''); };
   async function load() {
     const t = Math.floor(Date.now() / 60e3), b = proxyBase();
     for (const u of (b ? [b + '/estaciones?t=' + t, BASE + '?t=' + t, BASE] : [BASE + '?t=' + t, BASE])) {       // en vivo (Worker propio); si falla, proxies públicos y la copia de GitHub Actions
@@ -188,9 +188,9 @@
   // Cartel chico sobre el mapa: dice cuántas estaciones hay o por qué no cargan
   function status(ok) {
     if (!on) return; let c = document.getElementById('stnInfo');
-    if (!c) { c = document.createElement('div'); c.id = 'stnInfo'; c.style.cssText = 'position:fixed;left:8px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:1000;max-width:78vw;background:rgba(7,24,43,.95);color:#fff;border:1px solid #2a5f94;border-radius:10px;padding:7px 10px;font:12.5px system-ui,sans-serif'; document.body.appendChild(c); }
+    if (!c) { c = document.createElement('div'); c.id = 'stnInfo'; c.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:84px;z-index:1000;max-width:min(640px,86vw);background:rgba(7,24,43,.95);color:#fff;border:1px solid #2a5f94;border-radius:10px;padding:7px 10px;font:12.5px system-ui,sans-serif'; document.body.appendChild(c); }
     clearTimeout(c._t);
-    if (ok) { const n = list.filter(s => s.ok).length; c.style.display = 'block'; c.style.borderColor = '#2a5f94'; c.textContent = '📍 ' + n + ' estaciones con datos de hace menos de 90 min (' + list.length + ' en total) · tocá una para ver el detalle'; c._t = setTimeout(() => { c.style.display = 'none'; }, 9000); }
+    if (ok) { const n = list.filter(s => s.ok).length; c.style.display = 'block'; c.style.borderColor = '#2a5f94'; c.textContent = '📍 ' + n + ' estaciones con datos de hace menos de 90 min (' + list.length + ' en total) · hacé clic en una para ver el detalle'; c._t = setTimeout(() => { c.style.display = 'none'; }, 9000); }
     else { c.style.display = 'block'; c.style.borderColor = '#ff6b6b'; c.textContent = proxyBase() ? '📍 No pude traer las estaciones ahora. Reintento en 1 minuto.' : '📍 No pude traer las estaciones: falta configurar el servidor (proxy en config.js).'; }
   }
   let firstN = true;

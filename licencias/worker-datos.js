@@ -2,8 +2,8 @@
    NO usa KV, ni secretos, ni licencias. Pegá este archivo completo en Cloudflare → Workers → tu Worker → Edit code → Deploy.
    Probar: abrí  https://TU-WORKER.workers.dev/health  (tiene que decir ok: true) y  https://TU-WORKER.workers.dev/estaciones
    Después pegá la dirección del Worker en config.js → proxy: '...'.
-   Opcional: Variable ALLOWED_ORIGIN (por defecto solo acepta https://codemarketmdz-maker.github.io; varios separados por coma). */
-const DEFAULT_ORIGIN = 'https://codemarketmdz-maker.github.io';
+   Opcional: Variable ALLOWED_ORIGIN (por defecto acepta https://clima.codemarketmdz.workers.dev y https://codemarketmdz-maker.github.io; varios separados por coma). */
+const DEFAULT_ORIGIN = 'https://clima.codemarketmdz.workers.dev,https://codemarketmdz-maker.github.io';
 
 /* ---------- Proxy de fuentes oficiales (SMN, INPRES, METAR, Contingencias) ----------
    La página no puede leerlas directo (CORS). El Worker las pide desde el servidor de Cloudflare más cercano y devuelve el texto con CORS.
