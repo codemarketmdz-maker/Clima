@@ -99,7 +99,7 @@ export default {
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '', allowed = (env.ALLOWED_ORIGIN || DEFAULT_ORIGIN).split(',').map(s => s.trim());
     const path = new URL(req.url).pathname;
-    const okO = allowed.includes('*') || allowed.includes(origin) || (!origin && (path === '/health' || path === '/estaciones' || path.startsWith('/radar/')));   // abrir la dirección en el navegador (sin Origin) sirve para probar
+    const okO = allowed.includes('*') || allowed.includes(origin) || !origin;   // abrir la dirección en el navegador (sin Origin) sirve para probar; las páginas de otros sitios sí mandan Origin y se rechazan
     const cors = { 'Access-Control-Allow-Origin': allowed.includes('*') ? '*' : (okO && origin ? origin : 'null'), 'Vary': 'Origin', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'GET, OPTIONS' };
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     const send = (o, code) => new Response(JSON.stringify(o), { status: code || 200, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
