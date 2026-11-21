@@ -152,7 +152,7 @@
     try {
       const r = await fetch(b + '/radar/list?id=' + encodeURIComponent(cur), { cache: 'no-store' }), j = await r.json();
       if (my !== token) return;
-      if (!r.ok) { msg(r.status === 503 ? 'El servidor no pudo obtener acceso al radar del SMN. Probá de nuevo en unos minutos.' : 'No pude traer el radar ahora (' + (j.error || r.status) + ').', true); return; }
+      if (!r.ok) { msg(r.status === 503 ? 'El servidor no pudo obtener acceso al radar del SMN: ' + (j.error || '') + '. Probá de nuevo en unos minutos.' : 'No pude traer el radar ahora (' + (j.error || r.status) + ').', true); return; }
       const list = (j.list || []).slice().reverse();            // el SMN manda la más nueva primero
       if (!list.length) { msg('El SMN no tiene imágenes disponibles de este radar en este momento.', true); return; }
       Object.keys(urls).forEach(k => { if (!list.includes(k)) { URL.revokeObjectURL(urls[k]); delete urls[k]; } });

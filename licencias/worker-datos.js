@@ -51,16 +51,19 @@ async function proxyFetch(req, cors) {
    Las respuestas se guardan 2 min (lista) y 5 min (imágenes) en la red de Cloudflare: muchos usuarios no multiplican los pedidos al SMN. */
 const RADAR_ID = /^(?:COMP_(?:ARG|CEN|NOR)|RMA\d{1,2}_240|ANG_240|PAR_240|PER_240)$/;
 const RADAR_FILE = /^[A-Za-z0-9_]{6,80}\.png$/;
-let tokCache = { v: '', until: 0 };
+let tokCache = { v: '', until: 0 }, tokWhy = '';
+const SMN_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 function jwtExp(t) { try { const p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); return p.exp ? p.exp * 1000 : 0; } catch (e) { return 0; } }
 async function smnToken(env, force) {
   if (env.SMN_TOKEN) return env.SMN_TOKEN;
   const now = Date.now();
   if (!force && tokCache.v && now < tokCache.until) return tokCache.v;
-  const r = await fetch('https://www.smn.gob.ar/radar', { headers: { 'Accept': 'text/html' } });
-  if (!r.ok) return '';
-  const m = /localStorage\.setItem\(\s*['"]token['"]\s*,\s*['"]([A-Za-z0-9_\-.]+)['"]/.exec(await r.text());
-  if (!m) return '';
+  tokWhy = '';
+  const r = await fetch('https://www.smn.gob.ar/radar', { headers: { 'User-Agent': SMN_UA, 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'es-AR,es;q=0.9' } });
+  if (!r.ok) { tokWhy = 'la página del SMN respondió ' + r.status; return ''; }
+  const html = await r.text();
+  const m = /setItem\(\s*['"]token['"]\s*,\s*['"]([A-Za-z0-9_\-.]+)['"]/.exec(html) || /(eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})/.exec(html);
+  if (!m) { tokWhy = 'no encontré el token en la página del SMN (' + html.length + ' bytes)'; return ''; }
   const exp = jwtExp(m[1]);
   tokCache = { v: m[1], until: Math.min(exp ? exp - 120e3 : now + 20 * 60e3, now + 6 * 3600e3) };
   return m[1];
@@ -73,8 +76,8 @@ async function radarRoute(req, env, cors, path) {
     if (!RADAR_ID.test(id)) return json({ error: 'radar desconocido' }, 400);
     try {
       let tok = await smnToken(env, false);
-      if (!tok) return json({ error: 'no pude obtener el acceso del SMN' }, 503);
-      const ask = t => fetch('https://ws1.smn.gob.ar/v1/images/radar/' + id, { headers: { 'Accept': 'application/json', 'Authorization': 'JWT ' + t }, cf: { cacheTtl: 120, cacheEverything: true } });
+      if (!tok) return json({ error: 'no pude obtener el acceso del SMN' + (tokWhy ? ' (' + tokWhy + ')' : '') }, 503);
+      const ask = t => fetch('https://ws1.smn.gob.ar/v1/images/radar/' + id, { headers: { 'User-Agent': SMN_UA, 'Accept': 'application/json', 'Authorization': 'JWT ' + t }, cf: { cacheTtl: 120, cacheEverything: true } });
       let up = await ask(tok);
       if ((up.status === 401 || up.status === 403) && !env.SMN_TOKEN) { tok = await smnToken(env, true); if (tok) up = await ask(tok); }
       if (!up.ok) return json({ error: 'el SMN respondió ' + up.status }, up.status === 401 || up.status === 403 ? 502 : (up.status === 429 || up.status === 503 ? up.status : 502));
