@@ -116,6 +116,34 @@
   }
   function overlayOff() { ovOn = false; ovTok++; stop(); $('rdBar').style.display = 'none'; const m = mapObj(); if (ovLayer && m) m.removeLayer(ovLayer); ovLayer = null; clearOvl(); }
 
+  // ---------- Diagnóstico del servidor de datos (para ver exactamente qué responde el Worker a esta página) ----------
+  async function diag() {
+    const out = $('rdDiag'), b = base(), log = []; out.style.display = 'block';
+    const P = s => { log.push(s); out.textContent = log.join('\n'); };
+    P('Página: ' + location.origin); P('proxy en config.js: ' + (C.proxy ? C.proxy : '(vacío)'));
+    if (!b) { P('✖ Falta poner la dirección del Worker en config.js → proxy.'); return; }
+    P('Servidor usado: ' + b + '\n');
+    const hint = (st, txt) => st === 404 && !txt ? '→ Cloudflare devuelve 404 vacío: ese Worker NO tiene el código de worker-datos.js (¿se creó como "archivos estáticos"?). Creá un Worker común (Create Worker → Hello World), pegá worker-datos.js en Edit code y Deploy.'
+      : st === 403 ? '→ El Worker no acepta esta página (' + location.origin + '). Borrá la variable ALLOWED_ORIGIN del Worker o ponele ese valor.'
+      : st === 502 || st === 503 ? '→ El Worker anda, pero la fuente externa no respondió: ' + String(txt).slice(0, 90) : '→ Respuesta inesperada: ' + String(txt).slice(0, 90);
+    async function get(name, path, blob) {
+      const t0 = Date.now();
+      try {
+        const r = await fetch(b + path, { cache: 'no-store' }), x = blob ? await r.blob() : await r.text(), ms = Date.now() - t0;
+        return { r, x, ms };
+      } catch (e) { P('✖ ' + name + ': el navegador no pudo leer la respuesta (' + (Date.now() - t0) + ' ms). Causas: el Worker no devuelve permiso CORS para esta página, no existe, o está caído.'); P('   → Abrí ' + b + '/health en otra pestaña: si dice "ok":true, revisá ALLOWED_ORIGIN; si no abre, el Worker no está publicado con ese nombre.'); return null; }
+    }
+    let bad = 0, first = null;
+    let q = await get('/health', '/health');
+    if (q) { let j = null; try { j = JSON.parse(q.x); } catch (e) { } if (q.r.ok && j && j.servicio === 'tiempomdz-datos') P('✔ /health  OK (' + q.ms + ' ms) · token SMN: ' + j.token_smn); else { bad++; P('✖ /health  HTTP ' + q.r.status); P('   ' + hint(q.r.status, q.x)); } } else bad++;
+    q = await get('/estaciones', '/estaciones');
+    if (q) { let j = null; try { j = JSON.parse(q.x); } catch (e) { } if (q.r.ok && Array.isArray(j)) P('✔ /estaciones  OK · ' + j.length + ' estaciones (' + q.ms + ' ms)'); else { bad++; P('✖ /estaciones  HTTP ' + q.r.status); P('   ' + hint(q.r.status, q.x)); } } else bad++;
+    q = await get('/radar/list', '/radar/list?id=RMA19_240');
+    if (q) { let j = null; try { j = JSON.parse(q.x); } catch (e) { } if (q.r.ok && j && Array.isArray(j.list) && j.list.length) { first = j.list[0]; P('✔ /radar/list  OK · ' + j.list.length + ' imágenes · última: ' + first + ' (' + q.ms + ' ms)'); } else { bad++; P('✖ /radar/list  HTTP ' + q.r.status); P('   ' + (j && j.error ? '→ ' + j.error : hint(q.r.status, q.x))); } } else bad++;
+    if (first) { q = await get('/radar/img', '/radar/img?f=' + encodeURIComponent(first), true); if (q) { if (q.r.ok && q.x.size > 1000) P('✔ /radar/img  OK · ' + Math.round(q.x.size / 1024) + ' KB · ' + (q.x.type || 'imagen')); else { bad++; P('✖ /radar/img  HTTP ' + q.r.status); } } else bad++; }
+    P('\n' + (bad ? '✖ Hay ' + bad + ' prueba(s) con error. Copiá este texto y mandámelo.' : '✔ Todo funciona: el radar y las estaciones deberían verse.'));
+  }
+
   // ---------- Carga ----------
   async function load() {
     const my = ++token, b = base();
@@ -153,8 +181,8 @@
       '<div style="background:#1a1a1a;border-radius:10px;text-align:center;min-height:120px"><img id="rdImg" alt="Imagen de radar del SMN" style="max-width:100%;max-height:60dvh;display:block;margin:0 auto;border-radius:10px"></div>' +
       '<input id="rdSlide" type="range" min="0" max="0" value="0" style="width:100%;margin:8px 0 2px">' +
       '<p id="rdTime" class="note" style="margin:2px 0 6px;text-align:center"></p>' +
-      '<div class="pre"><button class="btn" id="rdPlay">▶ Reproducir</button><button class="btn" id="rdRef">↻ Actualizar</button><button class="btn" id="rdMapBtn">🗺 Ver sobre el mapa</button></div>' +
-      '<p class="msg" id="rdMsg" style="margin-top:8px"></p></div>';
+      '<div class="pre"><button class="btn" id="rdPlay">▶ Reproducir</button><button class="btn" id="rdRef">↻ Actualizar</button><button class="btn" id="rdMapBtn">🗺 Ver sobre el mapa</button><button class="btn" id="rdDiagBtn">🔧 Probar servidor</button></div>' +
+      '<p class="msg" id="rdMsg" style="margin-top:8px"></p><pre id="rdDiag" style="display:none;white-space:pre-wrap;font:12px/1.45 monospace;background:#0a1a2c;border:1px solid #2a5f94;border-radius:8px;padding:8px;margin:8px 0 0;max-height:240px;overflow:auto;color:#cfe3f5"></pre></div>';
     document.body.appendChild(m);
     const bar = document.createElement('div'); bar.id = 'rdBar';
     bar.style.cssText = 'display:none;position:fixed;left:8px;right:8px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:1100;background:rgba(7,24,43,.95);border:1px solid #2a5f94;border-radius:12px;padding:8px 10px;color:#fff;font:13px system-ui,sans-serif;max-width:560px;margin:0 auto';
@@ -167,7 +195,7 @@
     document.body.appendChild(bar);
     const sel = $('rdSel'); RADARS.forEach(([id, n]) => { const o = document.createElement('option'); o.value = id; o.textContent = n; sel.appendChild(o); });
     sel.onchange = () => { stop(); if (ovOn) overlayOff(); cur = sel.value; $('rdMapBtn').style.display = GEO[cur] ? '' : 'none'; frames = []; Object.keys(urls).forEach(k => { URL.revokeObjectURL(urls[k]); delete urls[k]; }); clearOvl(); $('rdImg').removeAttribute('src'); load(); };
-    $('rdClose').onclick = () => closeIt(); $('rdPlay').onclick = play; $('rdRef').onclick = load; $('rdMapBtn').onclick = overlayOn;
+    $('rdDiagBtn').onclick = diag; $('rdClose').onclick = () => closeIt(); $('rdPlay').onclick = play; $('rdRef').onclick = load; $('rdMapBtn').onclick = overlayOn;
     $('rdSlide').oninput = e => { stop(); show(+e.target.value); };
     $('rdBarSlide').oninput = e => { stop(); show(+e.target.value); }; $('rdBarPlay').onclick = play; $('rdBarX').onclick = overlayOff;
     $('rdOp').oninput = e => { ovOpacity = +e.target.value / 100; if (ovLayer) ovLayer.setOpacity(ovOpacity); };
@@ -177,5 +205,5 @@
     const ref = $('layerBtn'); if (ref && ref.parentNode) ref.parentNode.insertBefore(b, ref); else document.body.appendChild(b);
   }
   g.openRadar = openIt;
-  g.addEventListener('load', init);
+  g.addEventListener('load', () => { init(); if (/(^|[#&])diag\b/.test(location.hash)) { openIt(); setTimeout(diag, 400); } });
 })(window);

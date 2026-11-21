@@ -57,6 +57,7 @@ El radar del SMN y las estaciones FePEDI no se pueden leer directo desde la pág
 2. **Edit code** → seleccioná todo y borralo → pegá el contenido completo de **`licencias/worker-datos.js`** → **Deploy**. (No hace falta KV, secretos ni variables.)
 3. Probá en el navegador (cambiá la dirección por la tuya): `https://datos.TU-CUENTA.workers.dev/health` debe decir `"ok":true` y `…/estaciones` debe mostrar una lista de estaciones.
 4. En `config.js` poné esa dirección **completa, con https://**, en `proxy: 'https://datos.TU-CUENTA.workers.dev'` (sin barra al final), dejá `licUrl: ''` y volvé a publicar la página.
+**Si algo no carga:** abrí **📡 Radar SMN → 🔧 Probar servidor** (o agregá `#diag` al final de la dirección de la página). Prueba `/health`, `/estaciones`, la lista del radar y una imagen, y explica en castellano qué falla. Podés copiar el resultado y mandarlo.
 El Worker acepta pedidos desde `https://clima.codemarketmdz.workers.dev` y `https://codemarketmdz-maker.github.io`; para otra dirección usá la variable `ALLOWED_ORIGIN`. El token del radar lo obtiene el Worker solo (el SMN confirmó que el uso es público y que no tiene otro) y lo renueva cada hora; si el SMN te da uno propio, guardalo como Secreto `SMN_TOKEN`.
 
 ## Radar del SMN (botón 📡 Radar SMN)

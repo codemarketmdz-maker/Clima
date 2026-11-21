@@ -191,7 +191,7 @@
     if (!c) { c = document.createElement('div'); c.id = 'stnInfo'; c.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:84px;z-index:1000;max-width:min(640px,86vw);background:rgba(7,24,43,.95);color:#fff;border:1px solid #2a5f94;border-radius:10px;padding:7px 10px;font:12.5px system-ui,sans-serif'; document.body.appendChild(c); }
     clearTimeout(c._t);
     if (ok) { const n = list.filter(s => s.ok).length; c.style.display = 'block'; c.style.borderColor = '#2a5f94'; c.textContent = '📍 ' + n + ' estaciones con datos de hace menos de 90 min (' + list.length + ' en total) · hacé clic en una para ver el detalle'; c._t = setTimeout(() => { c.style.display = 'none'; }, 9000); }
-    else { c.style.display = 'block'; c.style.borderColor = '#ff6b6b'; c.textContent = proxyBase() ? '📍 No pude traer las estaciones ahora. Reintento en 1 minuto.' : '📍 No pude traer las estaciones: falta configurar el servidor (proxy en config.js).'; }
+    else { c.style.display = 'block'; c.style.borderColor = '#ff6b6b'; c.textContent = proxyBase() ? '📍 No pude traer las estaciones. Abrí 📡 Radar SMN → 🔧 Probar servidor para ver el motivo.' : '📍 No pude traer las estaciones: falta configurar el servidor (proxy en config.js).'; }
   }
   let firstN = true;
   function afterFirst(n) {
@@ -225,7 +225,15 @@
     const q = document.getElementById('qStn'); if (q) { q.classList.toggle('on', on); q.setAttribute('aria-pressed', String(on)); }
     if (on) { if (!list.length) load().then(paint); else { paint(); status(true); } } else { if (group && m && m.hasLayer(group)) m.removeLayer(group); const c = document.getElementById('stnInfo'); if (c) c.style.display = 'none'; }
   }
+  function ensureChip() {       // el panel de capas lo arma ui2.js; si por algo no incluyó el botón, se agrega acá
+    if (document.querySelector('.mx-chip[data-k="stn"]') || document.getElementById('stnFab')) return;
+    const dock = document.querySelector('.mx-dock'), b = document.createElement('button'); b.type = 'button';
+    if (dock) { b.className = 'mx-chip'; b.dataset.k = 'stn'; b.innerHTML = '<span class="ic">📍</span><span class="tx">Estaciones</span>'; const al = dock.querySelector('.mx-chip.act'); dock.insertBefore(b, al || null); }
+    else { b.id = 'stnFab'; b.textContent = '📍 Estaciones'; b.style.cssText = 'position:fixed;right:14px;top:150px;z-index:1000;min-height:40px;padding:0 12px;border-radius:12px;border:1px solid #2a5f94;background:rgba(7,24,43,.95);color:#fff;font:600 13px system-ui,sans-serif;cursor:pointer'; document.body.appendChild(b); }
+    b.onclick = () => { toggle(); b.classList.toggle('on', on); };
+  }
   function init() {
+    setTimeout(ensureChip, 1500); setTimeout(ensureChip, 5000);
     const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
     const b = document.createElement('button'); b.id = 'stn'; b.type = 'button'; b.style.display = 'none'; b.onclick = toggle; document.body.appendChild(b);
     load(); timer = setInterval(() => { if (!document.hidden) load(); }, 60e3);
