@@ -3,7 +3,7 @@
 (function (root) {
   'use strict';
   const URL_ = lat => 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.lat.toFixed(3) + '&longitude=' + lat.lon.toFixed(3) +
-    '&hourly=temperature_2m,weather_code,precipitation,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover' +
+    '&hourly=temperature_2m,weather_code,is_day,precipitation,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover' +
     '&forecast_hours=25&timezone=auto&wind_speed_unit=kmh';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const DOW = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
@@ -25,7 +25,7 @@
     const h = j && j.hourly; if (!h || !h.time || !h.time.length) throw new Error('El pronóstico llegó vacío.');
     return h.time.map((t, i) => ({
       time: t, t: h.temperature_2m[i], code: h.weather_code[i], pr: h.precipitation[i], prob: h.precipitation_probability ? h.precipitation_probability[i] : null,
-      wind: h.wind_speed_10m[i], dir: h.wind_direction_10m[i], gust: h.wind_gusts_10m[i], cloud: h.cloud_cover[i]
+      wind: h.wind_speed_10m[i], dir: h.wind_direction_10m[i], gust: h.wind_gusts_10m[i], cloud: h.cloud_cover[i], day: h.is_day ? h.is_day[i] : null
     }));
   }
   root.HoursWx = { parse, judge };
@@ -40,7 +40,7 @@
     rows.slice(0, 24).forEach((r, i) => {
       const d = new Date(r.time), dk = d.getDate() + '/' + d.getMonth();
       if (dk !== day) { day = dk; h += '<div class="hr-day">' + (i === 0 ? 'Hoy' : DOW[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1)) + '</div>'; }
-      const w = M.wxText(r.code), j = judge(r, conf), hh = String(d.getHours()).padStart(2, '0') + ':00';
+      const w = M.wxText(r.code, r.day != null ? Number(r.day) === 1 : (d.getHours() >= 7 && d.getHours() < 20)), j = judge(r, conf), hh = String(d.getHours()).padStart(2, '0') + ':00';
       h += '<div class="hr-row l' + j.lvl + '"><span class="hr-t">' + (i === 0 ? 'Ahora' : hh) + '</span><span class="hr-i" title="' + esc(w[1]) + '">' + w[0] + '</span>' +
         '<span class="hr-d"><b>' + R(r.t) + '°</b></span>' +
         '<span class="hr-r">' + (r.pr >= 0.1 ? '🌧 ' + (r.pr < 10 ? r.pr.toFixed(1) : R(r.pr)) + ' mm' : (r.prob != null && r.prob >= 30 ? '☔ ' + R(r.prob) + '%' : '')) + '</span>' +

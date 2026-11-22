@@ -18,8 +18,14 @@
     if (k < 80) return ['Viento muy fuerte', '🚨'];
     return ['Temporal', '🌪'];
   }
-  function wxText(code) {
-    const c = Number(code);
+  const MOON_CLOUD = '<span style="position:relative;display:inline-block;width:1.15em;height:1em;line-height:1;vertical-align:baseline">🌙<span style="position:absolute;left:.34em;top:.3em;font-size:.82em">☁️</span></span>';
+  function wxText(code, day) {      // day === false (o 0) → ícono de noche: luna en vez de sol
+    const c = Number(code), night = day === false || day === 0 || day === '0';
+    if (night) {
+      if (c === 0 || c === 1) return ['🌙', c === 0 ? 'Despejado' : 'Mayormente despejado'];
+      if (c === 2) return [MOON_CLOUD, 'Parcialmente nublado'];
+      if ((c >= 51 && c <= 57) || (c >= 80 && c <= 82)) return ['🌧', c <= 57 ? 'Llovizna' : 'Chubascos'];
+    }
     if (c === 0) return ['☀️', 'Despejado'];
     if (c === 1) return ['🌤', 'Mayormente despejado'];
     if (c === 2) return ['⛅', 'Parcialmente nublado'];
@@ -461,7 +467,7 @@
     const c = (typeof lastC !== 'undefined' && lastC) || (typeof last !== 'undefined' && last && last[0] && last[0].c);
     let name = ''; try { name = cur().name; } catch (e) { }
     if (!c) { hud.innerHTML = '<div class="r1"><b>TiempoMDZ</b></div><div class="r2"><span class="wx">Buscando datos del tiempo…</span></div>'; return; }
-    const w = wxText(c.weather_code), sp = Math.round(c.wind_speed_10m || 0), wc = windClass(sp), dir = c.wind_direction_10m;
+    const w = wxText(c.weather_code, c.is_day == null ? undefined : Number(c.is_day) === 1), sp = Math.round(c.wind_speed_10m || 0), wc = windClass(sp), dir = c.wind_direction_10m;
     const nAl = (typeof curEvents !== 'undefined' && curEvents) ? curEvents.length : 0;
     const rain = Number(c.precipitation || 0);
     hud.innerHTML = '<div class="r1">📍 <b>' + esc(name || 'Tu ubicación') + '</b>' + (nAl ? '<span class="badge">' + nAl + ' aviso' + (nAl > 1 ? 's' : '') + '</span>' : '') + '</div>' +
