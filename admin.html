@@ -64,7 +64,7 @@ async function loadKey(txt){
     const j=JSON.parse(txt);if(!j.d||!j.x||!j.y)throw 0;
     priv=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',d:j.d,x:j.x,y:j.y},{name:'ECDSA',namedCurve:'P-256'},false,['sign']);
     const pub=(window.CM_CFG||{}).licPub;
-    if(pub&&pub.x===j.x&&pub.y===j.y){$('keyst').className='ok';$('keyst').textContent='✔ Clave válida y coincide con la clave pública de config.js'}
+    if(pub&&pub.x===j.x&&pub.y===j.y){$('keyst').className='ok';$('keyst').textContent='✔ Clave válida y coincide con la clave pública de config.js (empieza con '+j.x.slice(0,6)+'…)'}
     else if(!pub){$('keyst').className='warn';$('keyst').textContent='✔ Clave privada válida. Pero el config.js publicado en tu sitio todavía no tiene licPub: subí el config.js con la clave pública a GitHub, esperá 1–2 minutos y recargá esta página (Ctrl+F5). Tu clave pública es: '+JSON.stringify({kty:'EC',crv:'P-256',x:j.x,y:j.y})}
     else{$('keyst').className='warn';$('keyst').textContent='✔ Clave válida, pero NO coincide con licPub de config.js: las claves que generes no van a funcionar en la app hasta que pongas esta clave pública en config.js → licPub: '+JSON.stringify({kty:'EC',crv:'P-256',x:j.x,y:j.y})}
     if($('rem').checked)ls.s('adm_prv',txt.trim());else ls.d('adm_prv');

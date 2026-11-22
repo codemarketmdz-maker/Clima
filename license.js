@@ -50,15 +50,21 @@
   let licP = null;
   const cleanLic = c => String(c || '').replace(/\s+/g, '').replace(/^TMDZ2\./i, '');
   async function parseLic(code) {
-    if (!C.licPub) return { err: 'Falta configurar la clave pública (licPub) en config.js.' };
+    let lp = C.licPub; if (typeof lp === 'string') { try { lp = JSON.parse(lp); } catch (e) { lp = null; } }
+    if (!lp || !lp.x || !lp.y) return { err: 'Falta configurar la clave pública (licPub) en config.js.' };
+    const mark = ' (clave pública del sitio: ' + String(lp.x).slice(0, 6) + '…)';
+    let step = 'clave pública';
     try {
-      if (!pubKey) pubKey = await crypto.subtle.importKey('jwk', C.licPub, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+      if (!pubKey) pubKey = await crypto.subtle.importKey('jwk', { kty: 'EC', crv: 'P-256', x: lp.x, y: lp.y }, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+      step = 'formato de la clave';
       const [body, sig] = cleanLic(code).split('.'); if (!body || !sig) return { err: 'La clave está incompleta. Copiala entera, desde TMDZ2. hasta el final.' };
-      if (!await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, b64d(sig), new TextEncoder().encode(body))) return { err: 'La clave no es válida. Pedila de nuevo.' };
+      const bytes = b64d(sig); step = 'firma';
+      if (!await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, bytes, new TextEncoder().encode(body))) return { err: 'La firma no coincide: la clave se generó con otra clave privada o está incompleta. Pedila de nuevo.' + mark };
+      step = 'contenido';
       const p = JSON.parse(new TextDecoder().decode(b64d(body)));
       if (p.v !== 2 || !p.d || !p.e) return { err: 'La clave no es válida. Pedila de nuevo.' };
       return { p };
-    } catch (e) { return { err: 'No pude verificar la clave. Revisá que esté completa.' }; }
+    } catch (e) { return { err: 'No pude verificar la clave (' + step + ': ' + String((e && (e.name || e.message)) || e).slice(0, 60) + ').' + mark }; }
   }
   async function loadLic() { licP = null; const c = lsg(LIC); if (!c) return; const r = await parseLic(c); if (r.p) licP = r.p; }
   async function webActivate(code) {
