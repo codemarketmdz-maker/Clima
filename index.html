@@ -334,6 +334,19 @@ body{display:flex;flex-direction:column;max-width:100%;margin:0;color:#f3f7fa}
       <div class="opt"><span>Repetir el mismo aviso cada</span><select id="oRep"></select></div>
     </div>
     <div class="sec">
+      <h3>Granizo y ecos fuertes del radar (SMN)</h3>
+      <label class="row"><input type="checkbox" id="oRdOn"><span>Avisar por ecos fuertes del radar<small>Mira el radar del SMN cerca de tu ubicación y de tus fincas, cada 5 minutos. Necesita el servidor de datos configurado.</small></span></label>
+      <div class="opt"><span><b>Desde qué intensidad avisar</b></span><b id="oRdVal" style="color:#90caf9;font-size:14px">52 dBZ</b></div>
+      <input type="range" id="oRdDbz" min="35" max="65" step="1" style="width:100%;margin:2px 0">
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#9fb4c8"><span>← Más avisos (más sensible)</span><span>Menos avisos (más exigente) →</span></div>
+      <p class="note" id="oRdTxt" style="margin:6px 0"></p>
+      <div id="oRdLegend" style="font-size:11.5px;margin:4px 0"></div>
+      <p class="note" style="margin:4px 0">¿Qué es dBZ? Es la fuerza con que el radar ve la lluvia o el granizo: cuanto más alto el número, más intenso. El radar no ve el granizo que cae al suelo: avisa que es posible.</p>
+      <div class="opt"><span><b>Avisar si el eco está a menos de</b></span><select id="oRdKm"><option value="10">10 km</option><option value="25">25 km</option><option value="40">40 km</option><option value="60">60 km</option></select></div>
+      <p class="note" id="oRdKmTxt" style="margin:4px 0"></p>
+      <p class="note" id="oRdStat" style="margin:4px 0;color:#9fb4c8"></p>
+    </div>
+    <div class="sec">
       <h3>Alertas</h3>
       <label class="row"><input type="checkbox" id="oSound"><span>Sonido en la app abierta</span></label>
       <label class="row"><input type="checkbox" id="oVib"><span>Vibración</span></label>
@@ -467,7 +480,7 @@ async function updateGpsName(lat,lon){
     if(n!==GPS_NAME){GPS_NAME=n;LS.set('gpsName',n);buildLocSelect();pushState();syncLocUI&&syncLocUI()}
   }catch(e){}
 }
-const stnX=(e,l)=>window.stnCross?window.stnCross(e,l,cfg):e;
+const stnX=(e,l)=>{let r=window.stnCross?window.stnCross(e,l,cfg):e;return window.radarCross?window.radarCross(r,l,cfg):r};
 const monitored=()=>[{id:'gps',name:GPS_NAME,lat:pos.lat,lon:pos.lon},...fincas];
 const curLoc=()=>selId==='gps'?{id:'gps',name:GPS_NAME,lat:pos.lat,lon:pos.lon}:(fincas.find(f=>f.id===selId)||{id:'gps',name:GPS_NAME,lat:pos.lat,lon:pos.lon});
 const cur=()=>curLoc();
@@ -1185,7 +1198,7 @@ $('cfgBtn').onclick=()=>{
   fillSel('oKm',[100,200,300,500],cfg.quakeKm,v=>v+' km',v=>cfg.quakeKm=v);
   fillSel('oRep',[15,30,60,120,240],cfg.repeatMin,v=>v<60?v+' min':(v/60)+' h',v=>cfg.repeatMin=v);
   $('oSound').checked=cfg.sound;$('oVib').checked=cfg.vibrate;
-  $('oLead').value=String(cfg.alertLeadMin||60);$('oFrost').value=String(cfg.frostC==null?3:cfg.frostC);$('oStn').value=cfg.stnCross===false?'0':'1';$('oStnKm').value=String(cfg.stnKm||30);
+  $('oLead').value=String(cfg.alertLeadMin||60);$('oFrost').value=String(cfg.frostC==null?3:cfg.frostC);$('oStn').value=cfg.stnCross===false?'0':'1';$('oStnKm').value=String(cfg.stnKm||30);$('oRdOn').checked=cfg.radarOn!==false;$('oRdDbz').value=String(cfg.radarDbz||52);$('oRdKm').value=String(cfg.radarKm||25);rdPaint();
   permState();regPeriodic().then(bgStatus);
   $('cfgModal').classList.add('active');
 };
@@ -1196,8 +1209,24 @@ $('oLead').onchange=e=>{cfg.alertLeadMin=Math.max(45,Math.min(90,Number(e.target
 function paintTierLocks(){const o=$('oFrost');if(!o)return;const ok=cmCan('frost');o.disabled=!ok;const sp=o.parentElement&&o.parentElement.querySelector('span');if(sp){sp.textContent='Riesgo de helada desde'+(ok?'':' 🔒 Pro')}}
 window.addEventListener('cm-tier',()=>{paintTierLocks();try{analyze(true)}catch(e){}});paintTierLocks();
 $('oFrost').onchange=e=>{cfg.frostC=Math.max(0,Math.min(6,Number(e.target.value)||0));saveCfg();try{analyze(true)}catch(x){}};
+const RD_LV=[
+ {a:35,b:44,c:'#b8d830',t:'Lluvia fuerte',d:'Un chaparrón intenso. Casi nunca trae granizo. Si elegís este nivel vas a recibir muchos avisos, la mayoría sin granizo.'},
+ {a:45,b:49,c:'#f0a020',t:'Tormenta fuerte',d:'Lluvia torrencial, rayos y ráfagas. El granizo es poco probable, aunque puede caer alguno chico.'},
+ {a:50,b:51,c:'#e8602a',t:'Granizo posible, poco probable',d:'Ya hay hielo adentro de la tormenta. A veces cae granizo chico. Avisa temprano, con algunas falsas alarmas.'},
+ {a:52,b:54,c:'#d02030',t:'Posible granizo (recomendado)',d:'Tormenta muy fuerte con hielo adentro: puede caer granizo. Buen equilibrio entre avisar a tiempo y no dar falsas alarmas.'},
+ {a:55,b:59,c:'#c0209a',t:'Granizo probable',d:'Tormenta severa: el granizo es probable y puede dañar cultivos, vehículos y techos. Avisa menos veces, pero casi siempre es peligrosa.'},
+ {a:60,b:65,c:'#e6b8ff',t:'Granizo probable y grande',d:'Tormentas extremas, con piedra de tamaño importante. Solo avisa en los casos más graves: podés no enterarte de granizos chicos o medianos.'}];
+const RD_KM={10:'Casi encima de tu finca: avisa recién cuando la tormenta ya está llegando.',25:'Cerca (recomendado): da tiempo para guardar vehículos y maquinaria.',40:'Más anticipación, pero también más avisos de tormentas que después se desvían.',60:'Mucha anticipación. Vas a recibir bastantes avisos de tormentas que no llegan a tu zona.'};
+function rdPaint(){const v=Number(cfg.radarDbz)||52,L=RD_LV.find(l=>v>=l.a&&v<=l.b)||RD_LV[RD_LV.length-1];
+ $('oRdVal').textContent=v+' dBZ';$('oRdTxt').innerHTML='<b style="color:#fff">'+L.t+'</b> — '+L.d;
+ $('oRdLegend').innerHTML=RD_LV.map(l=>'<div style="display:flex;gap:7px;align-items:flex-start;padding:4px 5px;border-radius:7px;'+(l===L?'background:#1b2a3d;outline:1px solid #35b6ff':'')+'"><span style="width:10px;height:10px;border-radius:50%;background:'+l.c+';margin-top:4px;flex:none"></span><span><b>'+l.a+(l.b>=65?' o más':' a '+l.b)+' dBZ · '+l.t+'</b><br><small style="color:#b9c7d6">'+l.d+'</small></span></div>').join('');
+ $('oRdKmTxt').textContent=RD_KM[cfg.radarKm||25]||'';try{if(window.radarWatchInfo)$('oRdStat').textContent=window.radarWatchInfo()}catch(e){}}
 $('oStn').onchange=e=>{cfg.stnCross=e.target.value!=='0';saveCfg();try{analyze(true)}catch(x){}};
 $('oStnKm').onchange=e=>{cfg.stnKm=Math.max(5,Math.min(100,Number(e.target.value)||30));saveCfg();try{analyze(true)}catch(x){}};
+$('oRdOn').onchange=e=>{cfg.radarOn=e.target.checked;saveCfg();try{analyze(true)}catch(x){}};
+$('oRdDbz').oninput=e=>{cfg.radarDbz=Number(e.target.value)||52;rdPaint()};
+$('oRdDbz').onchange=()=>{saveCfg();try{analyze(true)}catch(x){}};
+$('oRdKm').onchange=e=>{cfg.radarKm=Number(e.target.value)||25;rdPaint();saveCfg();try{analyze(true)}catch(x){}};
 $('closeCfg').onclick=()=>$('cfgModal').classList.remove('active');
 $('layerBtn').onclick=()=>{$('layerModal').classList.add('active');document.querySelectorAll('[data-layer]').forEach(b=>{const t=$(b.dataset.layer);if(t)b.textContent=t.classList.contains('on')?'Desactivar':'Activar';});};
 $('closeLayers').onclick=()=>$('layerModal').classList.remove('active');
@@ -1400,7 +1429,7 @@ if(qp.get('alert')!==null){setTimeout(()=>openSOS(qp.get('alert')||''),400)}
 <script>Forecast.init()</script>
 <script src="ui2.js?v=25"></script>
 <script src="hours.js?v=2"></script>
-<script src="radar.js?v=7"></script>
+<script src="radar.js?v=9"></script>
 <script src="stations.js?v=4"></script>
 <script>/* PC: mide la barra de acciones para apilar las capas encima */
 (function(){const q=matchMedia('(min-width:900px) and (hover:hover) and (pointer:fine)'),b=document.getElementById('bar');if(!b)return;

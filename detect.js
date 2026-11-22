@@ -130,7 +130,7 @@
   g.DEFAULT_CFG = {
     notify: { wind: true, zonda: true, stormWeak: false, stormStrong: true, stormApproach: true, hail: true, quake: true, frost: true },
     escape: true,
-    windKmh: 60, quakeMag: 4, quakeKm: 300, repeatMin: 60, sound: true, vibrate: true, alertLeadMin: 60, frostC: 3, stnCross: true, stnKm: 30
+    windKmh: 60, quakeMag: 4, quakeKm: 300, repeatMin: 60, sound: true, vibrate: true, alertLeadMin: 60, frostC: 3, stnCross: true, stnKm: 30, radarOn: true, radarDbz: 52, radarKm: 25
   };
   g.mergeCfg = function (s) {
     s = s || {};
